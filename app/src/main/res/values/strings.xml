@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Thorium</string>
+    <!-- Public token-->
+    <string name="mapbox_access_token">pk.eyJ1IjoiZGFsaXN5cm9uIiwiYSI6ImNrcTJiNHQ4NzBteGsyb3A4c2IzaTM2b3kifQ.66pbzBSG4XxugT9jLMeiew</string>
 </resources>
