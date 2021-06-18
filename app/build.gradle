@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.thorium"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -87,6 +87,8 @@ dependencies {
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.6.1'
 
     implementation project(':usecase')
     implementation project(':data')
