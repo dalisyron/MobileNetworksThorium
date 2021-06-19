@@ -10,9 +10,13 @@ import androidx.core.content.ContextCompat
 import com.example.thorium.databinding.ActivityMainBinding
 import com.example.thorium.gsm.CellularService
 import com.example.thorium.util.checkSelfPermissionCompat
+import com.example.thorium.util.toLatLng
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
@@ -50,6 +54,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
 
         binding.fabStartTracking.setOnClickListener {
             getCellInfo()
+        }
+
+        binding.fabMyLocation.setOnClickListener {
+            recenterCameraLocation()
         }
     }
 
@@ -138,5 +146,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         } else {
             Toast.makeText(this, "Location permissions were not granted.", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun recenterCameraLocation() {
+        val position = CameraPosition.Builder()
+            .target(mapboxMap.locationComponent.lastKnownLocation!!.toLatLng())
+            .zoom(14.0)
+            .build()
+
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 500)
     }
 }
