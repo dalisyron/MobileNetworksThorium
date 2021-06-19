@@ -5,13 +5,13 @@ apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.example.thorium"
-        minSdkVersion 21
-        targetSdkVersion 29
+        minSdkVersion 23
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
