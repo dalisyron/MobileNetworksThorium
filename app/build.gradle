@@ -48,6 +48,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "androidx.coordinatorlayout:coordinatorlayout:$libraries.coordinatorlayout"
     implementation "com.google.android.material:material:$libraries.material"
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
     testImplementation 'junit:junit:4.12'
 
