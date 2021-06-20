@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     }
 
     private fun displayCurrentCellInfo() {
-        val cellInfo = cellularService.getCellInfo()
+        val cellInfo = cellularService.fetchAllCellInfo().toString()
         Toast.makeText(this, cellInfo, Toast.LENGTH_LONG).show()
     }
 
