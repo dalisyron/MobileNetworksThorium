@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -98,7 +99,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         })
 
         homeViewModel.activeTracking.observe(this, {
-            binding.tvLogs.text = it.cellLogs.joinToString(prefix = "~~~~~~~~~", postfix = "~~~~~~~~~") { "\n" }
+            val str = it.cellLogs.joinToString(separator = "\n", prefix = "----", postfix = "----")
+            Log.e("AAAAA", str)
+            binding.tvLogs.text = str
         })
     }
 

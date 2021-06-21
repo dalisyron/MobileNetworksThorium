@@ -44,10 +44,4 @@ class MainTypeConverters {
         val (lat, lon) = string.split(',').map { it.toDouble() }
         return LatLng(lat, lon)
     }
-
-    companion object {
-        const val LTE_CELL_PREFIX = "lte"
-        const val WCDMA_CELL_PREFIX = "wcdma"
-        const val GSM_CELL_PREFIX = "gsm"
-    }
 }
