@@ -6,6 +6,37 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/tvLogs"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabSaveCellLog"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:contentDescription="Save Cell Log"
+        android:scaleType="center"
+        android:src="@drawable/ic_baseline_add_24"
+        app:layout_constraintBottom_toTopOf="@id/fabStopTracking"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabStopTracking"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:contentDescription="Stop Tracking"
+        android:scaleType="center"
+        android:src="@drawable/ic_baseline_stop_24"
+        app:layout_constraintBottom_toTopOf="@id/fabStartTracking"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabStartTracking"
         android:layout_width="56dp"
@@ -22,8 +53,8 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_margin="16dp"
-        android:scaleType="center"
         android:contentDescription="My Location"
+        android:scaleType="center"
         android:src="@drawable/ic_baseline_my_location_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

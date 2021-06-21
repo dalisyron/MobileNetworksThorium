@@ -1,8 +1,8 @@
 package com.example.thorium.util
 
 import android.location.Location
-import com.mapbox.mapboxsdk.geometry.LatLng
+import com.example.common.entity.LatLng
 
 fun Location.toLatLng(): LatLng {
-    return LatLng(latitude, longitude, altitude)
+    return LatLng(latitude, longitude)
 }

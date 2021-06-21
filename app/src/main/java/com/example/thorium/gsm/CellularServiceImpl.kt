@@ -20,15 +20,17 @@ import androidx.core.content.ContextCompat
 import com.example.common.entity.CellGsm
 import com.example.common.entity.CellLte
 import com.example.common.entity.CellWcdma
+import com.example.usecase.service.CellularService
 import java.lang.IllegalArgumentException
 
-
-class CellularService {
+class CellularServiceImpl : CellularService {
 
     private val telephonyManager =
         applicationContext!!.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
-    fun fetchAllCellInfo(): List<Cell> {
+    override fun getActiveCells(): List<Cell> = getAllCells().filter { it.registered }
+
+    override fun getAllCells(): List<Cell> {
         val permissionCheck = ContextCompat.checkSelfPermission(
             applicationContext!!,
             Manifest.permission.ACCESS_FINE_LOCATION

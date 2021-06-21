@@ -49,6 +49,8 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$libraries.coordinatorlayout"
     implementation "com.google.android.material:material:$libraries.material"
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation project(path: ':data')
+    implementation project(path: ':local')
 
     testImplementation 'junit:junit:4.12'
 
@@ -91,8 +93,9 @@ dependencies {
 
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.6.1'
 
+    implementation "androidx.room:room-runtime:$libraries.room"
+    annotationProcessor "androidx.room:room-compiler:$libraries.room"
+
     implementation project(':usecase')
-    implementation project(':data')
-    implementation project(':local')
     implementation project(':common')
 }
