@@ -5,12 +5,19 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import com.example.common.entity.CellLogRequest
 import com.example.thorium.databinding.ActivityMainBinding
-import com.example.thorium.gsm.CellularService
+import com.example.thorium.gsm.CellularServiceImpl
+import com.example.thorium.location.LocationServiceImpl
+import com.example.thorium.service.CellularService
+import com.example.thorium.service.LocationService
+import com.example.thorium.ui.HomeViewModel
 import com.example.thorium.util.checkSelfPermissionCompat
-import com.example.thorium.util.toLatLng
+import com.example.usecase.repository.TrackingRepository
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
@@ -25,17 +32,29 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-const val PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 0
+const val PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG = 1
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     lateinit var binding: ActivityMainBinding
 
-    private val cellularService: CellularService = CellularService()
     private lateinit var mapboxMap: MapboxMap
     private var permissionsManager: PermissionsManager = PermissionsManager(this)
+
+    @Inject
+    lateinit var trackingRepository: TrackingRepository
+
+    private val homeViewModel by viewModels<HomeViewModel>()
+
+    private val locationService: LocationService by lazy {
+        LocationServiceImpl(mapboxMap.locationComponent)
+    }
+    private val cellularService: CellularService by lazy {
+        CellularServiceImpl(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,28 +72,45 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         }
 
         binding.fabStartTracking.setOnClickListener {
-            getCellInfo()
+            homeViewModel.onStartTrackingClicked()
+        }
+
+        binding.fabStopTracking.setOnClickListener {
+            homeViewModel.onStopTrackingClicked()
         }
 
         binding.fabMyLocation.setOnClickListener {
             recenterCameraLocation()
         }
-    }
 
-    private fun getCellInfo() {
-        if (checkSelfPermissionCompat(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                PERMISSION_REQUEST_ACCESS_FINE_LOCATION
-            )
-        } else {
-            displayCurrentCellInfo()
+        binding.fabSaveCellLog.setOnClickListener {
+            if (checkSelfPermissionCompat(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG
+                )
+            } else {
+                saveCellLog()
+            }
         }
+
+        homeViewModel.alert.observe(this, {
+            Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+        })
+
+        homeViewModel.activeTracking.observe(this, {
+            val str = it.cellLogs.joinToString(separator = "\n", prefix = "----", postfix = "----")
+            Log.e("AAAAA", str)
+            binding.tvLogs.text = str
+        })
     }
 
-    private fun displayCurrentCellInfo() {
-        val cellInfo = cellularService.fetchAllCellInfo().toString()
-        Toast.makeText(this, cellInfo, Toast.LENGTH_LONG).show()
+    private fun saveCellLog() {
+        val cellLogRequest = CellLogRequest(
+            cell = cellularService.getActiveCells()[0],
+            location = locationService.getLastKnownLocation()!!
+        )
+        homeViewModel.onSaveCellLogClicked(cellLogRequest)
     }
 
     override fun onRequestPermissionsResult(
@@ -82,9 +118,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        if (requestCode == PERMISSION_REQUEST_ACCESS_FINE_LOCATION) {
+        if (requestCode == PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG) {
             if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                displayCurrentCellInfo()
+                saveCellLog()
             } else {
                 Toast.makeText(this, "Need location permission to work!", Toast.LENGTH_LONG).show()
             }
@@ -137,7 +173,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     }
 
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
-        Toast.makeText(this, "Thorium services need need your location to work properly.", Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            this,
+            "Thorium services need need your location to work properly.",
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     override fun onPermissionResult(granted: Boolean) {
@@ -149,8 +189,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     }
 
     private fun recenterCameraLocation() {
+        val location = with(mapboxMap.locationComponent.lastKnownLocation!!) {
+            LatLng(latitude, longitude)
+        }
+
         val position = CameraPosition.Builder()
-            .target(mapboxMap.locationComponent.lastKnownLocation!!.toLatLng())
+            .target(location)
             .zoom(14.0)
             .build()
 

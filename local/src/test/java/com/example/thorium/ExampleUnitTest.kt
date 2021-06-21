@@ -1,4 +1,4 @@
-package com.example.local
+package com.example.thorium
 
 import org.junit.Test
 
