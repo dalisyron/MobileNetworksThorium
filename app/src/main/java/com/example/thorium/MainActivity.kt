@@ -8,12 +8,14 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
+import com.example.common.entity.CellLogRequest
 import com.example.thorium.databinding.ActivityMainBinding
 import com.example.thorium.gsm.CellularServiceImpl
+import com.example.thorium.location.LocationServiceImpl
+import com.example.thorium.service.CellularService
+import com.example.thorium.service.LocationService
 import com.example.thorium.ui.HomeViewModel
 import com.example.thorium.util.checkSelfPermissionCompat
-import com.example.thorium.util.toLatLng
 import com.example.usecase.repository.TrackingRepository
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
@@ -45,6 +47,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     lateinit var trackingRepository: TrackingRepository
 
     private val homeViewModel by viewModels<HomeViewModel>()
+
+    private val locationService: LocationService by lazy {
+        LocationServiceImpl(mapboxMap.locationComponent)
+    }
+    private val cellularService: CellularService by lazy {
+        CellularServiceImpl(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,7 +89,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                     PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG
                 )
             } else {
-                homeViewModel.onSaveCellLogClicked()
+                saveCellLog()
             }
         }
 
@@ -89,11 +98,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         })
 
         homeViewModel.activeTracking.observe(this, {
-            Toast.makeText(this, it.toString(), Toast.LENGTH_LONG).show()
+            binding.tvLogs.text = it.cellLogs.joinToString(prefix = "~~~~~~~~~", postfix = "~~~~~~~~~") { "\n" }
         })
     }
 
-    private fun getCellInfo() {
+    private fun saveCellLog() {
+        val cellLogRequest = CellLogRequest(
+            cell = cellularService.getActiveCells()[0],
+            location = locationService.getLastKnownLocation()!!
+        )
+        homeViewModel.onSaveCellLogClicked(cellLogRequest)
     }
 
     override fun onRequestPermissionsResult(
@@ -103,7 +117,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     ) {
         if (requestCode == PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG) {
             if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                homeViewModel.onSaveCellLogClicked()
+                saveCellLog()
             } else {
                 Toast.makeText(this, "Need location permission to work!", Toast.LENGTH_LONG).show()
             }
@@ -172,7 +186,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     }
 
     private fun recenterCameraLocation() {
-        val location = with (mapboxMap.locationComponent.lastKnownLocation!!) {
+        val location = with(mapboxMap.locationComponent.lastKnownLocation!!) {
             LatLng(latitude, longitude)
         }
 

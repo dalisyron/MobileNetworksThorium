@@ -1,19 +1,19 @@
 package com.example.common.entity
 
 sealed class Cell(
-    open val mcc: Int,
-    open val mnc: Int,
-    open val strength: Int,
-    open val registered: Boolean
+    val mcc: Int,
+    val mnc: Int,
+    val strength: Int,
+    val registered: Boolean
 )
 
-data class CellWcdma(
-    override val mcc: Int,
-    override val mnc: Int,
+class CellWcdma(
+    mcc: Int,
+    mnc: Int,
     val lac: Int,
     val psc: Int,
-    override val strength: Int,
-    override val registered: Boolean
+    strength: Int,
+    registered: Boolean
 ) : Cell(
     mcc = mcc,
     mnc = mnc,
@@ -40,13 +40,13 @@ data class CellWcdma(
     }
 }
 
-data class CellLte(
-    override val mcc: Int,
-    override val mnc: Int,
+class CellLte(
+    mcc: Int,
+    mnc: Int,
     val tac: Int,
     val pci: Int,
-    override val strength: Int,
-    override val registered: Boolean
+    strength: Int,
+    registered: Boolean
 ) : Cell(
     mcc = mcc,
     mnc = mnc,
@@ -73,13 +73,13 @@ data class CellLte(
     }
 }
 
-data class CellGsm(
-    override val mcc: Int,
-    override val mnc: Int,
+class CellGsm(
+    mcc: Int,
+    mnc: Int,
     val lac: Int,
     val bsic: Int,
-    override val strength: Int,
-    override val registered: Boolean
+    strength: Int,
+    registered: Boolean
 ) : Cell(
     mcc = mcc,
     mnc = mnc,

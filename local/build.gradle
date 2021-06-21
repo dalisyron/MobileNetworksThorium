@@ -2,6 +2,7 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
 }
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 30
@@ -43,7 +44,13 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     implementation "androidx.room:room-runtime:$libraries.room"
-    annotationProcessor "androidx.room:room-compiler:$libraries.room"
+    kapt "androidx.room:room-compiler:$libraries.room"
+    implementation "androidx.room:room-ktx:$libraries.room"
+
+    // Moshi
+    implementation "com.squareup.moshi:moshi:1.8.0"
+    implementation "com.squareup.moshi:moshi-kotlin:1.8.0"
+    implementation "com.squareup.moshi:moshi-adapters:1.8.0"
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$libraries.coroutines")

@@ -1,4 +1,4 @@
-package com.example.usecase.service
+package com.example.thorium.service
 
 import com.example.common.entity.Cell
 

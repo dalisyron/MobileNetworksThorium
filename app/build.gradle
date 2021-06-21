@@ -94,7 +94,8 @@ dependencies {
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.6.1'
 
     implementation "androidx.room:room-runtime:$libraries.room"
-    annotationProcessor "androidx.room:room-compiler:$libraries.room"
+    kapt "androidx.room:room-compiler:$libraries.room"
+    implementation "androidx.room:room-ktx:$libraries.room"
 
     implementation project(':usecase')
     implementation project(':common')

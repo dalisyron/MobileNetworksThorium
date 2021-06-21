@@ -4,10 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.common.entity.CellLogRequest
 import com.example.common.entity.Tracking
 import com.example.thorium.util.SingleLiveEvent
 import com.example.usecase.interactor.GetActiveTrackingUseCase
-import com.example.usecase.interactor.RecordCellLogUseCase
+import com.example.usecase.interactor.SaveCellLogUseCase
 import com.example.usecase.interactor.StartNewTrackingUseCase
 import com.example.usecase.interactor.StopActiveTrackingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val startNewTrackingUseCase: StartNewTrackingUseCase,
-    private val recordCellLogUseCase: RecordCellLogUseCase,
+    private val saveCellLogUseCase: SaveCellLogUseCase,
     private val stopActiveTrackingUseCase: StopActiveTrackingUseCase,
     private val getActiveTrackingUseCase: GetActiveTrackingUseCase
 ) : ViewModel() {
@@ -52,9 +53,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onSaveCellLogClicked() {
+    fun onSaveCellLogClicked(cellLogRequest: CellLogRequest) {
         runUseCase(successMessage = "Successfully saved cell log") {
-            recordCellLogUseCase()
+            saveCellLogUseCase(cellLogRequest)
             _activeTracking.value = getActiveTrackingUseCase()
         }
     }

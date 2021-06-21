@@ -5,3 +5,8 @@ data class CellLog(
     val cell: Cell,
     val location: LatLng
 )
+
+data class CellLogRequest(
+    val cell: Cell,
+    val location: LatLng
+)

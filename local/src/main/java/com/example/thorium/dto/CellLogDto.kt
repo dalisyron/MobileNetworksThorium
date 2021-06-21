@@ -8,7 +8,7 @@ import com.example.common.entity.LatLng
 
 @Entity(tableName = "cell_log")
 data class CellLogDto(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 1,
     @ColumnInfo(name = "tracking_id") val trackingId: Int,
     val cell: Cell,
     val location: LatLng

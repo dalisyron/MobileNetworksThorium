@@ -2,8 +2,9 @@ package com.example.usecase.interactor
 
 import com.example.common.entity.Tracking
 import com.example.usecase.repository.TrackingRepository
+import javax.inject.Inject
 
-class GetActiveTrackingUseCase constructor(
+class GetActiveTrackingUseCase @Inject constructor(
     private val trackingRepository: TrackingRepository
 ) {
 

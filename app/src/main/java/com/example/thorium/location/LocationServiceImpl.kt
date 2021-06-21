@@ -2,7 +2,7 @@ package com.example.thorium.location
 
 import com.example.common.entity.LatLng
 import com.example.thorium.util.toLatLng
-import com.example.usecase.service.LocationService
+import com.example.thorium.service.LocationService
 import com.mapbox.mapboxsdk.location.LocationComponent
 
 class LocationServiceImpl(
