@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -41,12 +43,11 @@ import javax.inject.Inject
 const val PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG = 1
 
 @AndroidEntryPoint
-class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
+class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentHomeBinding? = null
 
     private lateinit var mapboxMap: MapboxMap
-    private var permissionsManager: PermissionsManager = PermissionsManager(this)
 
     @Inject
     lateinit var trackingRepository: TrackingRepository
@@ -60,6 +61,17 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
     private val cellularService: CellularService by lazy {
         CellularServiceImpl(requireContext())
     }
+
+    private val requestPermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            permissions.forEach {
+                if (it.key == Manifest.permission.ACCESS_FINE_LOCATION) {
+                    if (it.value) {
+                        enableLocationComponent(mapboxMap.style!!)
+                    }
+                }
+            }
+        }
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -90,16 +102,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
         }
 
         binding.fabMyLocation.setOnClickListener {
-            recenterCameraLocation()
+            runIfLocationPermissionGranted {
+                recenterCameraLocation()
+            }
         }
 
+
         binding.fabSaveCellLog.setOnClickListener {
-            if (checkSelfPermissionCompat(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG
-                )
-            } else {
+            runIfLocationPermissionGranted {
                 saveCellLog()
             }
         }
@@ -133,25 +143,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
         homeViewModel.onSaveCellLogClicked(cellLogRequest)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        if (requestCode == PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG) {
-            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                saveCellLog()
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Need location permission to work!",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {
@@ -161,8 +152,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
 
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(requireContext())) {
+        runIfLocationPermissionGranted {
 
             // Create and customize the LocationComponent's options
             val customLocationComponentOptions = LocationComponentOptions.builder(requireContext())
@@ -190,21 +180,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
                 // Set the LocationComponent's render mode
                 renderMode = RenderMode.COMPASS
             }
-        } else {
-            permissionsManager = PermissionsManager(this)
-            permissionsManager.requestLocationPermissions(requireActivity())
         }
     }
 
-    override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
-        Toast.makeText(
-            requireContext(),
-            "Thorium services need need your location to work properly.",
-            Toast.LENGTH_LONG
-        ).show()
-    }
-
-    override fun onPermissionResult(granted: Boolean) {
+    fun onLocationPermissionResult(granted: Boolean) {
         if (granted) {
             enableLocationComponent(mapboxMap.style!!)
         } else {
@@ -213,6 +192,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
                 "Location permissions were not granted.",
                 Toast.LENGTH_LONG
             ).show()
+        }
+    }
+
+    private fun runIfLocationPermissionGranted(block: () -> Unit) {
+        if (checkSelfPermissionCompat(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            block()
+        } else {
+            requestPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
     }
 
