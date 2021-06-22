@@ -54,7 +54,12 @@ class TrackingLocalDataSourceImpl @Inject constructor(
 
     override suspend fun addNewCellLog(cellLog: CellLog) = withContext(Dispatchers.IO) {
         val activeTrackings = trackingDao.getActiveTrackings()
-        check(activeTrackings.size == 1)
+        check(activeTrackings.size <= 1) {
+            "Internal Error: More than one active trackings!"
+        }
+        check(activeTrackings.isNotEmpty()) {
+            "Error: No ongoing trackings."
+        }
         require(activeTrackings[0].id == cellLog.trackingId) {
             "CellLog does not correspond to the current active tracking"
         }
