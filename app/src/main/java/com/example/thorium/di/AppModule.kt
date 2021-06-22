@@ -3,12 +3,14 @@ package com.example.thorium.di
 import android.content.Context
 import androidx.room.Room
 import com.example.data.datasource.TrackingLocalDataSource
+import com.example.data.repository.AppStateRepositoryImpl
 import com.example.data.repository.TrackingRepositoryImpl
 import com.example.thorium.dao.CellLogDao
 import com.example.thorium.dao.TrackingDao
 import com.example.thorium.database.MainDatabase
 import com.example.thorium.database.MainTypeConverters
 import com.example.thorium.datasource.TrackingLocalDataSourceImpl
+import com.example.usecase.repository.AppStateRepository
 import com.example.usecase.repository.TrackingRepository
 import dagger.Module
 import dagger.Provides
@@ -56,5 +58,11 @@ object AppModule {
     @Provides
     fun provideTrackingRepository(trackingLocalDataSource: TrackingLocalDataSource): TrackingRepository {
         return TrackingRepositoryImpl(trackingLocalDataSource)
+    }
+
+    @Singleton
+    @Provides
+    fun provideAppStateRepository(): AppStateRepository {
+        return AppStateRepositoryImpl()
     }
 }

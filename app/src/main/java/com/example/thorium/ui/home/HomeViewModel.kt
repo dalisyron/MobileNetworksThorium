@@ -27,6 +27,9 @@ class HomeViewModel @Inject constructor(
     private val _activeTracking: MutableLiveData<Tracking> = MutableLiveData()
     val activeTracking = _activeTracking
 
+    private val _displayedTracking: MutableLiveData<Tracking> = MutableLiveData()
+    val displayedTracking: LiveData<Tracking> = _displayedTracking
+
     val isThereActiveTracking: LiveData<Boolean> = isThereActiveTrackingUseCase().asLiveData()
 
     private fun runUseCase(successMessage: String, useCase:suspend () -> Unit) {

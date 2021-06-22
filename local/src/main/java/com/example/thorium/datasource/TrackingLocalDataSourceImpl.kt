@@ -71,6 +71,7 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         val activeTrackingId = getActiveTrackingId()
 
         return@withContext Tracking(
+            id = activeTrackingId,
             cellLogs = cellLogDao.getCellLogsByTrackingId(activeTrackingId).map { it.toCellLog() }
         )
     }
@@ -85,6 +86,7 @@ class TrackingLocalDataSourceImpl @Inject constructor(
     override suspend fun getAllTrackings(): List<Tracking> = withContext(Dispatchers.IO) {
         return@withContext trackingDao.getAllTrackings().map {
             Tracking(
+                id = it.id,
                 cellLogs = cellLogDao.getCellLogsByTrackingId(it.id).map { it.toCellLog() }
             )
         }
@@ -92,5 +94,12 @@ class TrackingLocalDataSourceImpl @Inject constructor(
 
     override fun isThereActiveTracking(): Flow<Boolean> {
         return trackingDao.getActiveTrackingsFlow().map { it.any { tracking -> tracking.isActive } }
+    }
+
+    override suspend fun getTrackingById(id: Int): Tracking = withContext(Dispatchers.IO) {
+        return@withContext Tracking(
+            id = id,
+            cellLogs = cellLogDao.getCellLogsByTrackingId(id).map { it.toCellLog() }
+        )
     }
 }

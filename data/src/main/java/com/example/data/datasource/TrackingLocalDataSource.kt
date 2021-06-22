@@ -18,4 +18,6 @@ interface TrackingLocalDataSource {
     suspend fun getAllTrackings(): List<Tracking>
 
     fun isThereActiveTracking(): Flow<Boolean>
+
+    suspend fun getTrackingById(id: Int): Tracking
 }

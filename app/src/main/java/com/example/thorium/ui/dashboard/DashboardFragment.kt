@@ -25,7 +25,9 @@ class DashboardFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     private val adapter by lazy {
-        TrackingAdapter({})
+        TrackingAdapter { tracking ->
+            dashboardViewModel.onTrackingClicked(tracking)
+        }
     }
 
     override fun onCreateView(

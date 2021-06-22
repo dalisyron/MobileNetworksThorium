@@ -10,6 +10,8 @@ class TrackingRepositoryImpl(
     private val trackingLocalDataSource: TrackingLocalDataSource
 ) : TrackingRepository {
 
+    override var selectedTrackingId: Int? = null
+
     override suspend fun createNewActiveTracking() {
         trackingLocalDataSource.createNewActiveTracking()
     }
@@ -36,5 +38,9 @@ class TrackingRepositoryImpl(
 
     override fun isThereActiveTracking(): Flow<Boolean> {
         return trackingLocalDataSource.isThereActiveTracking()
+    }
+
+    override suspend fun getTrackingById(id: Int): Tracking {
+        return trackingLocalDataSource.getTrackingById(id)
     }
 }

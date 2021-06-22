@@ -5,6 +5,9 @@ import com.example.common.entity.Tracking
 import kotlinx.coroutines.flow.Flow
 
 interface TrackingRepository {
+
+    var selectedTrackingId: Int?
+
     suspend fun createNewActiveTracking()
 
     suspend fun getActiveTrackingId(): Int
@@ -18,4 +21,6 @@ interface TrackingRepository {
     suspend fun getAllTrackings(): List<Tracking>
 
     fun isThereActiveTracking(): Flow<Boolean>
+
+    suspend fun getTrackingById(id: Int): Tracking
 }
