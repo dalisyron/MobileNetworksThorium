@@ -1,4 +1,4 @@
-package com.example.thorium.ui
+package com.example.thorium.ui.home
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

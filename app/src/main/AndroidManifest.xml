@@ -14,6 +14,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Thorium">
         <activity
+            android:name=".MainActivity2"
+            android:exported="true"
+            android:label="@string/title_activity_main2"></activity>
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
