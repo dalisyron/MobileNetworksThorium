@@ -2,6 +2,7 @@ package com.example.usecase.repository
 
 import com.example.common.entity.CellLog
 import com.example.common.entity.Tracking
+import kotlinx.coroutines.flow.Flow
 
 interface TrackingRepository {
     suspend fun createNewActiveTracking()
@@ -15,4 +16,6 @@ interface TrackingRepository {
     suspend fun stopActiveTracking()
 
     suspend fun getAllTrackings(): List<Tracking>
+
+    fun isThereActiveTracking(): Flow<Boolean>
 }

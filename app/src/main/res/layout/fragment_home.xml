@@ -11,22 +11,11 @@
         android:contentDescription="Save Cell Log"
         android:scaleType="center"
         android:src="@drawable/ic_baseline_add_24"
-        app:layout_constraintBottom_toTopOf="@id/fabStopTracking"
+        app:layout_constraintBottom_toTopOf="@id/fabStartStopTracking"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabStopTracking"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_margin="16dp"
-        android:contentDescription="Stop Tracking"
-        android:scaleType="center"
-        android:src="@drawable/ic_baseline_stop_24"
-        app:layout_constraintBottom_toTopOf="@id/fabStartTracking"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabStartTracking"
+        android:id="@+id/fabStartStopTracking"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_margin="16dp"

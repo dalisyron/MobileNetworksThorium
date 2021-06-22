@@ -1,17 +1,13 @@
 package com.example.thorium.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.common.entity.CellLogRequest
 import com.example.common.entity.Tracking
 import com.example.thorium.util.SingleLiveEvent
-import com.example.usecase.interactor.GetActiveTrackingUseCase
-import com.example.usecase.interactor.SaveCellLogUseCase
-import com.example.usecase.interactor.StartNewTrackingUseCase
-import com.example.usecase.interactor.StopActiveTrackingUseCase
+import com.example.usecase.interactor.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.lang.Exception
 import javax.inject.Inject
@@ -21,7 +17,8 @@ class HomeViewModel @Inject constructor(
     private val startNewTrackingUseCase: StartNewTrackingUseCase,
     private val saveCellLogUseCase: SaveCellLogUseCase,
     private val stopActiveTrackingUseCase: StopActiveTrackingUseCase,
-    private val getActiveTrackingUseCase: GetActiveTrackingUseCase
+    private val getActiveTrackingUseCase: GetActiveTrackingUseCase,
+    private val isThereActiveTrackingUseCase: IsThereActiveTrackingUseCase
 ) : ViewModel() {
 
     private val _alert: SingleLiveEvent<String> = SingleLiveEvent()
@@ -29,6 +26,8 @@ class HomeViewModel @Inject constructor(
 
     private val _activeTracking: MutableLiveData<Tracking> = MutableLiveData()
     val activeTracking = _activeTracking
+
+    val isThereActiveTracking: LiveData<Boolean> = isThereActiveTrackingUseCase().asLiveData()
 
     private fun runUseCase(successMessage: String, useCase:suspend () -> Unit) {
         viewModelScope.launch {
@@ -41,13 +40,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onStartTrackingClicked() {
+    private fun onStartTrackingClicked() {
         runUseCase(successMessage = "Successfully started new tracking") {
             startNewTrackingUseCase()
         }
     }
 
-    fun onStopTrackingClicked() {
+    private fun onStopTrackingClicked() {
         runUseCase(successMessage = "Successfully stopped active tracking") {
             stopActiveTrackingUseCase()
         }
@@ -57,6 +56,14 @@ class HomeViewModel @Inject constructor(
         runUseCase(successMessage = "Successfully saved cell log") {
             saveCellLogUseCase(cellLogRequest)
             _activeTracking.value = getActiveTrackingUseCase()
+        }
+    }
+
+    fun onStartStopTrackingClicked() {
+        if (isThereActiveTracking.value!!) {
+            onStopTrackingClicked()
+        } else {
+            onStartTrackingClicked()
         }
     }
 }

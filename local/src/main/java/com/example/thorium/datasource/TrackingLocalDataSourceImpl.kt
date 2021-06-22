@@ -9,6 +9,8 @@ import com.example.thorium.dto.TrackingDto
 import com.example.thorium.mapper.toCellLog
 import com.example.thorium.mapper.toCellLogDto
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.lang.IllegalStateException
 import javax.inject.Inject
@@ -81,5 +83,9 @@ class TrackingLocalDataSourceImpl @Inject constructor(
                 cellLogs = cellLogDao.getCellLogsByTrackingId(it.id).map { it.toCellLog() }
             )
         }
+    }
+
+    override fun isThereActiveTracking(): Flow<Boolean> {
+        return trackingDao.getActiveTrackingsFlow().map { it.any { tracking -> tracking.isActive } }
     }
 }

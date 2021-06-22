@@ -85,12 +85,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
             getMapAsync(this@HomeFragment)
         }
 
-        binding.fabStartTracking.setOnClickListener {
-            homeViewModel.onStartTrackingClicked()
-        }
-
-        binding.fabStopTracking.setOnClickListener {
-            homeViewModel.onStopTrackingClicked()
+        binding.fabStartStopTracking.setOnClickListener {
+            homeViewModel.onStartStopTrackingClicked()
         }
 
         binding.fabMyLocation.setOnClickListener {
@@ -116,6 +112,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
             val str = it.cellLogs.joinToString(separator = "\n", prefix = "----", postfix = "----")
             Log.e("AAAAA", str)
             binding.tvLogs.text = str
+        }
+
+        homeViewModel.isThereActiveTracking.observe(viewLifecycleOwner) { isThereActive ->
+            val drawable = if (isThereActive) {
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_stop_24)
+            } else {
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_radar_tracking)
+            }
+
+            binding.fabStartStopTracking.setImageDrawable(drawable)
         }
     }
 

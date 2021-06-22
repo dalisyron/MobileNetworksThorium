@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.thorium.dto.TrackingDto
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TrackingDao {
@@ -24,4 +25,7 @@ interface TrackingDao {
 
     @Query("select * from tracking")
     suspend fun getAllTrackings(): List<TrackingDto>
+
+    @Query("select * from tracking where is_active=1")
+    fun getActiveTrackingsFlow(): Flow<List<TrackingDto>>
 }
