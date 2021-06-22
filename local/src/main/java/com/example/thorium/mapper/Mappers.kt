@@ -8,7 +8,8 @@ fun CellLog.toCellLogDto(): CellLogDto {
         id = 0, // Make sure id is always 0, necessary for auto-generate to work properly
         trackingId = trackingId,
         cell = cell,
-        location = location
+        location = location,
+        dateCreated = dateCreated
     )
 }
 
@@ -16,6 +17,7 @@ fun CellLogDto.toCellLog(): CellLog {
     return CellLog(
         trackingId = trackingId,
         cell = cell,
-        location = location
+        location = location,
+        dateCreated = dateCreated
     )
 }

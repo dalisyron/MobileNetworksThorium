@@ -28,4 +28,7 @@ interface TrackingDao {
 
     @Query("select * from tracking where is_active=1")
     fun getActiveTrackingsFlow(): Flow<List<TrackingDto>>
+
+    @Query("select * from tracking where id=:id")
+    suspend fun getTrackingById(id: Int): List<TrackingDto>
 }

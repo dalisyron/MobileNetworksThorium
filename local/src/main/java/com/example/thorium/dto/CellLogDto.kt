@@ -11,5 +11,6 @@ data class CellLogDto(
     @PrimaryKey(autoGenerate = true) val id: Int = 1,
     @ColumnInfo(name = "tracking_id") val trackingId: Int,
     val cell: Cell,
-    val location: LatLng
+    val location: LatLng,
+    val dateCreated: Long
 )

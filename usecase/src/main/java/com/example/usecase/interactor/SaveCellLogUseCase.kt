@@ -12,7 +12,8 @@ class SaveCellLogUseCase @Inject constructor(
         val cellLog = CellLog(
             trackingId = trackingRepository.getActiveTrackingId(),
             cell = cellLogRequest.cell,
-            location = cellLogRequest.location
+            location = cellLogRequest.location,
+            dateCreated = System.currentTimeMillis()
         )
         trackingRepository.addNewCellLog(cellLog)
     }

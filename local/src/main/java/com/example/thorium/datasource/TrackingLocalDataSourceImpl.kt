@@ -68,11 +68,17 @@ class TrackingLocalDataSourceImpl @Inject constructor(
     }
 
     override suspend fun getActiveTracking(): Tracking = withContext(Dispatchers.IO) {
-        val activeTrackingId = getActiveTrackingId()
+        val activeTrackings = trackingDao.getActiveTrackings()
+        check(activeTrackings.size == 1) {
+            "Internal Error: More than one active trackings!"
+        }
+
+        val tracking = activeTrackings[0]
 
         return@withContext Tracking(
-            id = activeTrackingId,
-            cellLogs = cellLogDao.getCellLogsByTrackingId(activeTrackingId).map { it.toCellLog() }
+            id = tracking.id,
+            cellLogs = cellLogDao.getCellLogsByTrackingId(tracking.id).map { it.toCellLog() },
+            dateCreated = tracking.timestamp
         )
     }
 
@@ -87,7 +93,8 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         return@withContext trackingDao.getAllTrackings().map {
             Tracking(
                 id = it.id,
-                cellLogs = cellLogDao.getCellLogsByTrackingId(it.id).map { it.toCellLog() }
+                cellLogs = cellLogDao.getCellLogsByTrackingId(it.id).map { it.toCellLog() },
+                dateCreated = it.timestamp
             )
         }
     }
@@ -97,9 +104,12 @@ class TrackingLocalDataSourceImpl @Inject constructor(
     }
 
     override suspend fun getTrackingById(id: Int): Tracking = withContext(Dispatchers.IO) {
+        val trackingDto = trackingDao.getTrackingById(id)[0]
+
         return@withContext Tracking(
-            id = id,
-            cellLogs = cellLogDao.getCellLogsByTrackingId(id).map { it.toCellLog() }
+            id = trackingDto.id,
+            cellLogs = cellLogDao.getCellLogsByTrackingId(trackingDto.id).map { it.toCellLog() },
+            dateCreated = trackingDto.timestamp
         )
     }
 }
