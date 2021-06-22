@@ -36,11 +36,15 @@ class TrackingRepositoryImpl(
         return trackingLocalDataSource.getAllTrackings()
     }
 
-    override fun isThereActiveTracking(): Flow<Boolean> {
-        return trackingLocalDataSource.isThereActiveTracking()
+    override fun isThereActiveTrackingFlow(): Flow<Boolean> {
+        return trackingLocalDataSource.isThereActiveTrackingFlow()
     }
 
     override suspend fun getTrackingById(id: Int): Tracking {
         return trackingLocalDataSource.getTrackingById(id)
+    }
+
+    override suspend fun isThereActiveTracking(): Boolean {
+        return trackingLocalDataSource.isThereActiveTracking()
     }
 }

@@ -18,17 +18,15 @@ class HomeViewModel @Inject constructor(
     private val saveCellLogUseCase: SaveCellLogUseCase,
     private val stopActiveTrackingUseCase: StopActiveTrackingUseCase,
     private val getActiveTrackingUseCase: GetActiveTrackingUseCase,
-    private val isThereActiveTrackingUseCase: IsThereActiveTrackingUseCase
+    private val isThereActiveTrackingUseCase: IsThereActiveTrackingUseCase,
+    private val getSelectedForDisplayTracking: GetSelectedForDisplayTracking
 ) : ViewModel() {
 
     private val _alert: SingleLiveEvent<String> = SingleLiveEvent()
     val alert: LiveData<String> = _alert
 
-    private val _activeTracking: MutableLiveData<Tracking> = MutableLiveData()
-    val activeTracking = _activeTracking
-
-    private val _displayedTracking: MutableLiveData<Tracking> = MutableLiveData()
-    val displayedTracking: LiveData<Tracking> = _displayedTracking
+    private val _displayedTracking: MutableLiveData<Tracking?> = MutableLiveData()
+    val displayedTracking: LiveData<Tracking?> = _displayedTracking
 
     val isThereActiveTracking: LiveData<Boolean> = isThereActiveTrackingUseCase().asLiveData()
 
@@ -46,20 +44,26 @@ class HomeViewModel @Inject constructor(
     private fun onStartTrackingClicked() {
         runUseCase(successMessage = "Successfully started new tracking") {
             startNewTrackingUseCase()
+            updateDisplayedTracking()
         }
     }
 
     private fun onStopTrackingClicked() {
         runUseCase(successMessage = "Successfully stopped active tracking") {
             stopActiveTrackingUseCase()
+            updateDisplayedTracking()
         }
     }
 
     fun onSaveCellLogClicked(cellLogRequest: CellLogRequest) {
         runUseCase(successMessage = "Successfully saved cell log") {
             saveCellLogUseCase(cellLogRequest)
-            _activeTracking.value = getActiveTrackingUseCase()
+            updateDisplayedTracking()
         }
+    }
+
+    private suspend fun updateDisplayedTracking() {
+        _displayedTracking.value = getSelectedForDisplayTracking()
     }
 
     fun onStartStopTrackingClicked() {

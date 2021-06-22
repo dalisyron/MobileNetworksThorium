@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.common.entity.CellLogRequest
+import com.example.common.entity.Tracking
 import com.example.thorium.R
 import com.example.thorium.databinding.FragmentHomeBinding
 import com.example.thorium.service.cellular.CellularService
@@ -22,9 +23,13 @@ import com.example.thorium.service.cellular.CellularServiceImpl
 import com.example.thorium.service.location.LocationService
 import com.example.thorium.service.location.LocationServiceImpl
 import com.example.thorium.util.checkSelfPermissionCompat
+import com.example.thorium.util.toPoint
 import com.example.usecase.repository.TrackingRepository
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.LineString
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
@@ -36,11 +41,18 @@ import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_home.*
 import javax.inject.Inject
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 
-const val PERMISSION_REQUEST_ACCESS_FINE_LOCATION_CELL_LOG = 1
+import com.mapbox.mapboxsdk.style.layers.LineLayer
+
+import android.R.style
+import android.graphics.Color
+import com.mapbox.mapboxsdk.style.layers.Property
+
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -118,10 +130,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
         }
 
-        homeViewModel.activeTracking.observe(viewLifecycleOwner) {
-            val str = it.cellLogs.joinToString(separator = "\n", prefix = "----", postfix = "----")
-            Log.e("AAAAA", str)
-            binding.tvLogs.text = str
+        homeViewModel.displayedTracking.observe(viewLifecycleOwner) { tracking ->
+            if (tracking != null) {
+                val str = tracking.cellLogs.joinToString(
+                    separator = "\n",
+                    prefix = "----",
+                    postfix = "----"
+                )
+                Log.e("AAAAA", str)
+                displayTrackingOnMap(tracking)
+            }
         }
 
         homeViewModel.isThereActiveTracking.observe(viewLifecycleOwner) { isThereActive ->
@@ -147,6 +165,21 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         this.mapboxMap = mapboxMap
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {
             enableLocationComponent(it)
+            it.addLayer(
+                LineLayer("linelayer", "line-source").withProperties(
+                    PropertyFactory.lineDasharray(arrayOf(0.01f, 2f)),
+                    PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                    PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                    PropertyFactory.lineWidth(5f),
+                    PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
+                )
+            )
+            mapboxMap.style!!.addSource(
+                GeoJsonSource(
+                    "line-source",
+                    FeatureCollection.fromFeatures(arrayOf())
+                )
+            )
         }
     }
 
@@ -214,6 +247,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             .build()
 
         mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 500)
+    }
+
+    private fun displayTrackingOnMap(tracking: Tracking) {
+        val coordinates = tracking.cellLogs.map { it.location.toPoint() }
+        val lineString = LineString.fromLngLats(coordinates)
+        mapboxMap.style!!.getSourceAs<GeoJsonSource>("line-source")!!.setGeoJson(lineString)
     }
 
     override fun onDestroyView() {

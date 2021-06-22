@@ -99,7 +99,7 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         }
     }
 
-    override fun isThereActiveTracking(): Flow<Boolean> {
+    override fun isThereActiveTrackingFlow(): Flow<Boolean> {
         return trackingDao.getActiveTrackingsFlow().map { it.any { tracking -> tracking.isActive } }
     }
 
@@ -111,5 +111,9 @@ class TrackingLocalDataSourceImpl @Inject constructor(
             cellLogs = cellLogDao.getCellLogsByTrackingId(trackingDto.id).map { it.toCellLog() },
             dateCreated = trackingDto.timestamp
         )
+    }
+
+    override suspend fun isThereActiveTracking(): Boolean = withContext(Dispatchers.IO) {
+        return@withContext trackingDao.getAllTrackings().isNotEmpty()
     }
 }

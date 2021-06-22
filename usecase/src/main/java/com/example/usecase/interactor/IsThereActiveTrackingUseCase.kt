@@ -9,6 +9,6 @@ class IsThereActiveTrackingUseCase @Inject constructor(
 ) {
 
     operator fun invoke(): Flow<Boolean> {
-        return trackingRepository.isThereActiveTracking()
+        return trackingRepository.isThereActiveTrackingFlow()
     }
 }
