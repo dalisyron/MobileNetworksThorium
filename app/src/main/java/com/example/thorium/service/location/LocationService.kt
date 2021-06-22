@@ -1,4 +1,4 @@
-package com.example.thorium.service
+package com.example.thorium.service.location
 
 import com.example.common.entity.LatLng
 

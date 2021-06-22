@@ -11,10 +11,10 @@ import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import com.example.common.entity.CellLogRequest
 import com.example.thorium.databinding.ActivityMainBinding
-import com.example.thorium.gsm.CellularServiceImpl
-import com.example.thorium.location.LocationServiceImpl
-import com.example.thorium.service.CellularService
-import com.example.thorium.service.LocationService
+import com.example.thorium.service.cellular.CellularServiceImpl
+import com.example.thorium.service.location.LocationServiceImpl
+import com.example.thorium.service.cellular.CellularService
+import com.example.thorium.service.location.LocationService
 import com.example.thorium.ui.HomeViewModel
 import com.example.thorium.util.checkSelfPermissionCompat
 import com.example.usecase.repository.TrackingRepository

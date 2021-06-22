@@ -1,8 +1,7 @@
-package com.example.thorium.location
+package com.example.thorium.service.location
 
 import com.example.common.entity.LatLng
 import com.example.thorium.util.toLatLng
-import com.example.thorium.service.LocationService
 import com.mapbox.mapboxsdk.location.LocationComponent
 
 class LocationServiceImpl(

@@ -1,4 +1,4 @@
-package com.example.thorium.service
+package com.example.thorium.service.cellular
 
 import com.example.common.entity.Cell
 

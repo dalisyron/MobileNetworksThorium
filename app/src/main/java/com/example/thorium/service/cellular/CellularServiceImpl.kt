@@ -1,4 +1,4 @@
-package com.example.thorium.gsm
+package com.example.thorium.service.cellular
 
 import android.Manifest
 import android.content.Context
@@ -7,7 +7,6 @@ import android.os.Build
 import android.telephony.CellInfo
 import android.telephony.TelephonyManager
 import android.util.Log
-import com.example.thorium.app.ThoriumApp.Companion.applicationContext
 import com.example.common.entity.Cell
 
 import android.telephony.CellInfoGsm
@@ -20,7 +19,6 @@ import androidx.core.content.ContextCompat
 import com.example.common.entity.CellGsm
 import com.example.common.entity.CellLte
 import com.example.common.entity.CellWcdma
-import com.example.thorium.service.CellularService
 import java.lang.IllegalArgumentException
 
 /**
