@@ -13,4 +13,6 @@ interface TrackingRepository {
     suspend fun getActiveTracking(): Tracking
 
     suspend fun stopActiveTracking()
+
+    suspend fun getAllTrackings(): List<Tracking>
 }

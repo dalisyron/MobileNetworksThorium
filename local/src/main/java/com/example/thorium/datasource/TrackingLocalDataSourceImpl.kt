@@ -74,4 +74,12 @@ class TrackingLocalDataSourceImpl @Inject constructor(
 
         trackingDao.stopActiveTracking()
     }
+
+    override suspend fun getAllTrackings(): List<Tracking> = withContext(Dispatchers.IO) {
+        return@withContext trackingDao.getAllTrackings().map {
+            Tracking(
+                cellLogs = cellLogDao.getCellLogsByTrackingId(it.id).map { it.toCellLog() }
+            )
+        }
+    }
 }

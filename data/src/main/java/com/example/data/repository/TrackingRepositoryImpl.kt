@@ -28,4 +28,8 @@ class TrackingRepositoryImpl(
     override suspend fun stopActiveTracking() {
         trackingLocalDataSource.stopActiveTracking()
     }
+
+    override suspend fun getAllTrackings(): List<Tracking> {
+        return trackingLocalDataSource.getAllTrackings()
+    }
 }

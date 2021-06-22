@@ -21,4 +21,7 @@ interface TrackingDao {
 
     @Query("update tracking set is_active=0 where is_active=1")
     suspend fun stopActiveTracking()
+
+    @Query("select * from tracking")
+    suspend fun getAllTrackings(): List<TrackingDto>
 }
