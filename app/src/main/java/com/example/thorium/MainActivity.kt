@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
                     if (dashboardFragment != null) {
                         supportFragmentManager.beginTransaction()
-                            .hide(dashboardFragment)
+                            .remove(dashboardFragment)
                             .commit()
                     }
                     if (homeFragment != null) {
