@@ -8,5 +8,6 @@ class StartNewTrackingUseCase @Inject constructor(
 ) {
     suspend operator fun invoke() {
         trackingRepository.createNewActiveTracking()
+        trackingRepository.selectedTrackingId = null
     }
 }
