@@ -1,6 +1,7 @@
 package com.example.data.repository
 
 import com.example.common.entity.CellLog
+import com.example.common.entity.LatLng
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import com.example.data.datasource.TrackingLocalDataSource
@@ -29,8 +30,8 @@ class TrackingRepositoryImpl(
         return trackingLocalDataSource.getActiveTracking()
     }
 
-    override suspend fun stopActiveTracking() {
-        trackingLocalDataSource.stopActiveTracking()
+    override suspend fun stopActiveTracking(stopLocation: LatLng) {
+        trackingLocalDataSource.stopActiveTracking(stopLocation)
     }
 
     override suspend fun getAllTrackings(): List<Tracking> {

@@ -1,6 +1,7 @@
 package com.example.thorium.datasource
 
 import com.example.common.entity.CellLog
+import com.example.common.entity.LatLng
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import com.example.data.datasource.TrackingLocalDataSource
@@ -21,28 +22,29 @@ class TrackingLocalDataSourceImpl @Inject constructor(
     private val cellLogDao: CellLogDao
 ) : TrackingLocalDataSource {
 
-    override suspend fun createNewActiveTracking(trackingAdd: TrackingAdd) = withContext(Dispatchers.IO) {
-        val activeTrackings = trackingDao.getActiveTrackings()
-        if (activeTrackings.isNotEmpty()) {
-            throw IllegalStateException("Data source already contains an active tracking")
-        }
-        val trackingWithHighestId = trackingDao.getTrackingWithHighestId()
+    override suspend fun createNewActiveTracking(trackingAdd: TrackingAdd) =
+        withContext(Dispatchers.IO) {
+            val activeTrackings = trackingDao.getActiveTrackings()
+            if (activeTrackings.isNotEmpty()) {
+                throw IllegalStateException("Data source already contains an active tracking")
+            }
+            val trackingWithHighestId = trackingDao.getTrackingWithHighestId()
 
-        val newTrackingId = if (trackingWithHighestId.isEmpty()) {
-            1
-        } else {
-            trackingWithHighestId[0].id + 1
-        }
+            val newTrackingId = if (trackingWithHighestId.isEmpty()) {
+                1
+            } else {
+                trackingWithHighestId[0].id + 1
+            }
 
-        val newActiveTracking = TrackingDto(
-            id = newTrackingId,
-            timestamp = System.currentTimeMillis(),
-            isActive = true,
-            startLocation = trackingAdd.startLocation,
-            endLocation = null
-        )
-        trackingDao.insertTracking(newActiveTracking)
-    }
+            val newActiveTracking = TrackingDto(
+                id = newTrackingId,
+                timestamp = System.currentTimeMillis(),
+                isActive = true,
+                startLocation = trackingAdd.startLocation,
+                endLocation = null
+            )
+            trackingDao.insertTracking(newActiveTracking)
+        }
 
     override suspend fun getActiveTrackingId(): Int = withContext(Dispatchers.IO) {
         val activeTrackings = trackingDao.getActiveTrackings()
@@ -87,11 +89,13 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         )
     }
 
-    override suspend fun stopActiveTracking() = withContext(Dispatchers.IO) {
+    override suspend fun stopActiveTracking(stopLocation: LatLng) = withContext(Dispatchers.IO) {
         val activeTrackings = trackingDao.getActiveTrackings()
         check(activeTrackings.size == 1)
+        val tracking = activeTrackings[0]
 
         trackingDao.stopActiveTracking()
+        trackingDao.setStopLocationForTracking(tracking.id, stopLocation)
     }
 
     override suspend fun getAllTrackings(): List<Tracking> = withContext(Dispatchers.IO) {

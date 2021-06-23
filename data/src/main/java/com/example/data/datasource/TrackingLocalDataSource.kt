@@ -1,6 +1,7 @@
 package com.example.data.datasource
 
 import com.example.common.entity.CellLog
+import com.example.common.entity.LatLng
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,7 @@ interface TrackingLocalDataSource {
 
     suspend fun getActiveTracking(): Tracking
 
-    suspend fun stopActiveTracking()
+    suspend fun stopActiveTracking(stopLocation: LatLng)
 
     suspend fun getAllTrackings(): List<Tracking>
 

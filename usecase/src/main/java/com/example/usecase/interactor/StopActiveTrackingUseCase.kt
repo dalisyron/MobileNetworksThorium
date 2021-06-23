@@ -9,6 +9,6 @@ class StopActiveTrackingUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(stoppingLocation: LatLng) {
-        trackingRepository.stopActiveTracking()
+        trackingRepository.stopActiveTracking(stoppingLocation)
     }
 }
