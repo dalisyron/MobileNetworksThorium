@@ -2,6 +2,7 @@ package com.example.thorium.datasource
 
 import com.example.common.entity.CellLog
 import com.example.common.entity.Tracking
+import com.example.common.entity.TrackingAdd
 import com.example.data.datasource.TrackingLocalDataSource
 import com.example.thorium.dao.CellLogDao
 import com.example.thorium.dao.TrackingDao
@@ -20,7 +21,7 @@ class TrackingLocalDataSourceImpl @Inject constructor(
     private val cellLogDao: CellLogDao
 ) : TrackingLocalDataSource {
 
-    override suspend fun createNewActiveTracking() = withContext(Dispatchers.IO) {
+    override suspend fun createNewActiveTracking(trackingAdd: TrackingAdd) = withContext(Dispatchers.IO) {
         val activeTrackings = trackingDao.getActiveTrackings()
         if (activeTrackings.isNotEmpty()) {
             throw IllegalStateException("Data source already contains an active tracking")
@@ -36,7 +37,9 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         val newActiveTracking = TrackingDto(
             id = newTrackingId,
             timestamp = System.currentTimeMillis(),
-            isActive = true
+            isActive = true,
+            startLocation = trackingAdd.startLocation,
+            endLocation = null
         )
         trackingDao.insertTracking(newActiveTracking)
     }
@@ -78,7 +81,9 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         return@withContext Tracking(
             id = tracking.id,
             cellLogs = cellLogDao.getCellLogsByTrackingId(tracking.id).map { it.toCellLog() },
-            dateCreated = tracking.timestamp
+            dateCreated = tracking.timestamp,
+            startLocation = tracking.startLocation,
+            endLocation = tracking.endLocation
         )
     }
 
@@ -94,7 +99,9 @@ class TrackingLocalDataSourceImpl @Inject constructor(
             Tracking(
                 id = it.id,
                 cellLogs = cellLogDao.getCellLogsByTrackingId(it.id).map { it.toCellLog() },
-                dateCreated = it.timestamp
+                dateCreated = it.timestamp,
+                startLocation = it.startLocation,
+                endLocation = it.endLocation
             )
         }
     }
@@ -109,7 +116,9 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         return@withContext Tracking(
             id = trackingDto.id,
             cellLogs = cellLogDao.getCellLogsByTrackingId(trackingDto.id).map { it.toCellLog() },
-            dateCreated = trackingDto.timestamp
+            dateCreated = trackingDto.timestamp,
+            startLocation = trackingDto.startLocation,
+            endLocation = trackingDto.endLocation
         )
     }
 

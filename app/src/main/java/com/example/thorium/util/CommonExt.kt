@@ -1,9 +1,14 @@
 package com.example.thorium.util
 
+import android.content.Context
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 fun Fragment.checkSelfPermissionCompat(permission: String) =
     ActivityCompat.checkSelfPermission(requireContext(), permission)
@@ -16,7 +21,11 @@ fun AppCompatActivity.removeFragmentCommit(tag: String) {
         .commit()
 }
 
-fun AppCompatActivity.addOrShowFragmentCommit(tag: String, @IdRes container: Int, creator: () -> Fragment) {
+fun AppCompatActivity.addOrShowFragmentCommit(
+    tag: String,
+    @IdRes container: Int,
+    creator: () -> Fragment
+) {
     val fragment = supportFragmentManager.findFragmentByTag(tag)
 
     if (fragment == null) {
@@ -38,4 +47,17 @@ fun AppCompatActivity.hideFragmentCommit(tag: String) {
             .hide(fragment)
             .commit()
     }
+}
+
+fun Context.getFormattedDate(timeStamp: Long): String {
+    val zoneId = ZoneId.systemDefault()
+
+    return ZonedDateTime
+        .ofInstant(
+            Instant.ofEpochMilli(timeStamp),
+            zoneId
+        )
+        .format(
+            DateTimeFormatter.ofPattern( "yyyy.MM.dd.HH.mm.ss" )
+        )
 }

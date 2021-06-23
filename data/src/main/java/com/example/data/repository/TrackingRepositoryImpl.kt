@@ -2,6 +2,7 @@ package com.example.data.repository
 
 import com.example.common.entity.CellLog
 import com.example.common.entity.Tracking
+import com.example.common.entity.TrackingAdd
 import com.example.data.datasource.TrackingLocalDataSource
 import com.example.usecase.repository.TrackingRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,8 +13,8 @@ class TrackingRepositoryImpl(
 
     override var selectedTrackingId: Int? = null
 
-    override suspend fun createNewActiveTracking() {
-        trackingLocalDataSource.createNewActiveTracking()
+    override suspend fun createNewActiveTracking(trackingAdd: TrackingAdd) {
+        trackingLocalDataSource.createNewActiveTracking(trackingAdd)
     }
 
     override suspend fun getActiveTrackingId(): Int {

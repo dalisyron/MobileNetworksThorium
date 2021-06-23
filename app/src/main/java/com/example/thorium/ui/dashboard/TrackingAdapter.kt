@@ -6,7 +6,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.common.entity.Tracking
+import com.example.thorium.R
 import com.example.thorium.databinding.ItemTrackingBinding
+import com.example.thorium.util.getFormattedDate
+import java.text.SimpleDateFormat
+import java.util.*
 
 typealias OnTrackingItemClicked = (Tracking) -> Unit
 
@@ -51,9 +55,21 @@ class TrackingViewHolder(
     fun bind(tracking: Tracking) {
         this.tracking = tracking
         binding.apply {
-            tvLogCount.text = tracking.cellLogs.size.toString()
-            tvStartLocation.text = tracking.cellLogs.elementAtOrNull(0)?.toString() ?: "None"
-            tvTrackingDate.text = "Date (TODO)"
+
+            tvTrackingDate.text = itemView.context.getFormattedDate(tracking.dateCreated)
+
+            tvLogCount.text =
+                itemView.context.getString(R.string.log_count_place_holder, tracking.cellLogs.size)
+
+            tvStartLocation.text = itemView.context.getString(
+                R.string.start_location_place_holder,
+                tracking.startLocation
+            )
+
+            tvStopLocation.text = itemView.context.getString(
+                R.string.stop_location_place_holder,
+                tracking.endLocation
+            )
         }
     }
 }

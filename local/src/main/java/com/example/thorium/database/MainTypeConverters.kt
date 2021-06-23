@@ -35,13 +35,17 @@ class MainTypeConverters {
     }
 
     @TypeConverter
-    fun latLngToString(latLng: LatLng): String {
-        return "${latLng.latitude},${latLng.longitude}"
+    fun latLngToString(latLng: LatLng?): String {
+        return latLng?.let { "${it.latitude},${it.longitude}" } ?: "None"
     }
 
     @TypeConverter
-    fun stringToLatLng(string: String): LatLng {
-        val (lat, lon) = string.split(',').map { it.toDouble() }
-        return LatLng(lat, lon)
+    fun stringToLatLng(string: String): LatLng? {
+        if (string == "None") {
+            return null
+        } else {
+            val (lat, lon) = string.split(',').map { it.toDouble() }
+            return LatLng(lat, lon)
+        }
     }
 }

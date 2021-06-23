@@ -2,12 +2,12 @@ package com.example.thorium.ui.home
 
 import androidx.lifecycle.*
 import com.example.common.entity.CellLogRequest
+import com.example.common.entity.LatLng
 import com.example.common.entity.Tracking
+import com.example.common.entity.TrackingAdd
 import com.example.thorium.util.SingleLiveEvent
 import com.example.usecase.interactor.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.lang.Exception
 import javax.inject.Inject
@@ -46,16 +46,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onStartTrackingClicked() {
+    private fun onStartTrackingClicked(trackingAdd: TrackingAdd) {
         runUseCase(successMessage = "Successfully started new tracking") {
-            startNewTrackingUseCase()
+            startNewTrackingUseCase(trackingAdd)
             updateDisplayedTracking()
         }
     }
 
-    private fun onStopTrackingClicked() {
+    private fun onStopTrackingClicked(stoppingLocation: LatLng) {
         runUseCase(successMessage = "Successfully stopped active tracking") {
-            stopActiveTrackingUseCase()
+            stopActiveTrackingUseCase(stoppingLocation)
             updateDisplayedTracking()
         }
     }
@@ -71,11 +71,16 @@ class HomeViewModel @Inject constructor(
         _displayedTracking.value = getSelectedForDisplayTracking()
     }
 
-    fun onStartStopTrackingClicked() {
+    fun onStartStopTrackingClicked(currentLocation: LatLng) {
         if (isThereActiveTracking.value!!) {
-            onStopTrackingClicked()
+            onStopTrackingClicked(stoppingLocation = currentLocation)
         } else {
-            onStartTrackingClicked()
+            onStartTrackingClicked(
+                TrackingAdd(
+                    startLocation = currentLocation,
+                    dateCreated = System.currentTimeMillis()
+                )
+            )
         }
     }
 }

@@ -51,6 +51,7 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 
 import android.R.style
 import android.graphics.Color
+import com.example.common.entity.TrackingAdd
 import com.mapbox.mapboxsdk.style.layers.Property
 
 
@@ -110,7 +111,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
 
         binding.fabStartStopTracking.setOnClickListener {
-            homeViewModel.onStartStopTrackingClicked()
+            runIfLocationPermissionGranted {
+                homeViewModel.onStartStopTrackingClicked(locationService.getLastKnownLocation()!!)
+            }
         }
 
         binding.fabMyLocation.setOnClickListener {
