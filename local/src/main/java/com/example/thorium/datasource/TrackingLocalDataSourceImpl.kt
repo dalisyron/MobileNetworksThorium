@@ -114,6 +114,6 @@ class TrackingLocalDataSourceImpl @Inject constructor(
     }
 
     override suspend fun isThereActiveTracking(): Boolean = withContext(Dispatchers.IO) {
-        return@withContext trackingDao.getAllTrackings().isNotEmpty()
+        return@withContext trackingDao.getActiveTrackings().isNotEmpty()
     }
 }

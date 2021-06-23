@@ -17,7 +17,6 @@ class HomeViewModel @Inject constructor(
     private val startNewTrackingUseCase: StartNewTrackingUseCase,
     private val saveCellLogUseCase: SaveCellLogUseCase,
     private val stopActiveTrackingUseCase: StopActiveTrackingUseCase,
-    private val getActiveTrackingUseCase: GetActiveTrackingUseCase,
     private val isThereActiveTrackingUseCase: IsThereActiveTrackingUseCase,
     private val getSelectedForDisplayTracking: GetSelectedForDisplayTracking
 ) : ViewModel() {
@@ -29,6 +28,12 @@ class HomeViewModel @Inject constructor(
     val displayedTracking: LiveData<Tracking?> = _displayedTracking
 
     val isThereActiveTracking: LiveData<Boolean> = isThereActiveTrackingUseCase().asLiveData()
+
+    fun initialize() {
+        viewModelScope.launch {
+            updateDisplayedTracking()
+        }
+    }
 
     private fun runUseCase(successMessage: String, useCase:suspend () -> Unit) {
         viewModelScope.launch {

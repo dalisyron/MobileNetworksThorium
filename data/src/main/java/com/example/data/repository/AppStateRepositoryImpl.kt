@@ -16,11 +16,15 @@ class AppStateRepositoryImpl : AppStateRepository {
     override val navigationAction: Flow<NavigationAction>
         get() = _navigationAction.receiveAsFlow()
 
+    private val _appState: Channel<AppState> = Channel()
+    override val appState: Flow<AppState> = _appState.receiveAsFlow()
+
     override suspend fun goToState(state: AppState) {
         if (state == currentState) return
 
         val oldState = currentState
         currentState = state
+        _appState.send(state)
 
         when (oldState) {
             AppState.Dashboard -> {

@@ -19,6 +19,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val navigationAction = appStateRepository.navigationAction.asLiveData()
+    val appState = appStateRepository.appState.asLiveData()
 
     fun onBottomNavigationItemSelected(@IdRes itemId: Int) {
         viewModelScope.launch {

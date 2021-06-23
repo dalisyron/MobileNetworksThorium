@@ -153,6 +153,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onStart() {
+        homeViewModel.initialize()
+        super.onStart()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        if (!hidden) {
+            homeViewModel.initialize()
+        }
+        super.onHiddenChanged(hidden)
+    }
+
     private fun saveCellLog() {
         val cellLogRequest = CellLogRequest(
             cell = cellularService.getActiveCells()[0],

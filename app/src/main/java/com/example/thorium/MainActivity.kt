@@ -3,7 +3,9 @@ package com.example.thorium
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.children
 import androidx.lifecycle.Observer
+import com.example.common.entity.AppState
 import com.example.common.entity.NavigationAction
 import com.example.thorium.databinding.ActivityMainBinding
 import com.example.thorium.ui.dashboard.DashboardFragment
@@ -33,8 +35,26 @@ class MainActivity : AppCompatActivity() {
 
         binding.navView.setOnNavigationItemSelectedListener {
             mainViewModel.onBottomNavigationItemSelected(it.itemId)
-            true
+            false
         }
+
+        mainViewModel.appState.observe(this, { state ->
+            val menuItems = binding.navView.menu.children.map { it.itemId }
+
+            val selectedMenuItemId = when (state) {
+                AppState.Home -> {
+                    R.id.navigation_home
+                }
+                AppState.Dashboard -> {
+                    R.id.navigation_dashboard
+                }
+                else -> throw IllegalArgumentException("Invalid AppState")
+            }
+            menuItems.forEach {
+                binding.navView.menu.findItem(selectedMenuItemId).isChecked = (it == selectedMenuItemId)
+            }
+        })
+
         setupAppNavigation()
         mainViewModel.onStart()
     }
