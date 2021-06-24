@@ -2,18 +2,21 @@ package com.example.thorium.app
 
 import android.app.Application
 import android.content.Context
+import com.example.thorium.database.MainDatabaseManager
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import javax.inject.Inject
 
 @HiltAndroidApp
 class ThoriumApp : Application() {
 
+    @Inject
+    lateinit var mainDatabaseManager: MainDatabaseManager
+
     override fun onCreate() {
         super.onCreate()
         ThoriumApp.applicationContext = this
+        mainDatabaseManager.onStart()
     }
-    val applicationScope = CoroutineScope(SupervisorJob())
 
     companion object {
         var applicationContext: Context? = null

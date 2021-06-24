@@ -23,7 +23,7 @@ interface TrackingDao {
     suspend fun insertTracking(trackingDto: TrackingDto)
 
     @Query("update tracking set is_active=0 where is_active=1")
-    suspend fun stopActiveTracking()
+    suspend fun stopActiveTrackings()
 
     @Query("select * from tracking")
     suspend fun getAllTrackings(): List<TrackingDto>
@@ -33,4 +33,7 @@ interface TrackingDao {
 
     @Query("update tracking set end_location=:stopLocation where id=:id")
     suspend fun setStopLocationForTracking(id: Int, stopLocation: LatLng)
+
+    @Query("update tracking set is_active=0 where is_active=1")
+    fun stopActiveTrackingsBlocking()
 }
