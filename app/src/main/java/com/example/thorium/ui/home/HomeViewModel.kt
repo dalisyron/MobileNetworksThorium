@@ -27,7 +27,14 @@ class HomeViewModel @Inject constructor(
     private val _displayedTracking: MutableLiveData<Tracking?> = MutableLiveData()
     val displayedTracking: LiveData<Tracking?> = _displayedTracking
 
-    val isThereActiveTracking: LiveData<Boolean> = isThereActiveTrackingUseCase().asLiveData()
+    private val _isThereActiveTracking: MutableLiveData<Boolean> = MutableLiveData()
+    val isThereActiveTracking: LiveData<Boolean> = _isThereActiveTracking
+
+    private val _requestCellLog: SingleLiveEvent<LatLng> = SingleLiveEvent()
+    val requestCellLog: LiveData<LatLng> = _requestCellLog
+
+    private val _cellLogFinish: SingleLiveEvent<Unit> = SingleLiveEvent()
+    val cellLogFinish = _cellLogFinish
 
     fun initialize() {
         viewModelScope.launch {
@@ -35,25 +42,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun runUseCase(successMessage: String, useCase:suspend () -> Unit) {
-        viewModelScope.launch {
-            try {
-                useCase()
-                _alert.value = successMessage
-            } catch (e: Exception) {
-                _alert.value = e.message
-            }
+    private suspend fun runUseCase(successMessage: String, useCase: suspend () -> Unit) {
+        try {
+            useCase()
+            _alert.value = successMessage
+        } catch (e: Exception) {
+            _alert.value = e.message
         }
     }
 
-    private fun onStartTrackingClicked(trackingAdd: TrackingAdd) {
+    private suspend fun onStartTrackingClicked(trackingAdd: TrackingAdd) {
         runUseCase(successMessage = "Successfully started new tracking") {
             startNewTrackingUseCase(trackingAdd)
             updateDisplayedTracking()
         }
     }
 
-    private fun onStopTrackingClicked(stoppingLocation: LatLng) {
+    private suspend fun onStopTrackingClicked(stoppingLocation: LatLng) {
         runUseCase(successMessage = "Successfully stopped active tracking") {
             stopActiveTrackingUseCase(stoppingLocation)
             updateDisplayedTracking()
@@ -61,9 +66,11 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onSaveCellLogClicked(cellLogRequest: CellLogRequest) {
-        runUseCase(successMessage = "Successfully saved cell log") {
-            saveCellLogUseCase(cellLogRequest)
-            updateDisplayedTracking()
+        viewModelScope.launch {
+            runUseCase(successMessage = "Successfully saved cell log") {
+                saveCellLogUseCase(cellLogRequest)
+                updateDisplayedTracking()
+            }
         }
     }
 
@@ -71,16 +78,43 @@ class HomeViewModel @Inject constructor(
         _displayedTracking.value = getSelectedForDisplayTracking()
     }
 
+    private suspend fun updateActiveTrackingStatus() {
+        _isThereActiveTracking.value = isThereActiveTrackingUseCase()
+    }
+
     fun onStartStopTrackingClicked(currentLocation: LatLng) {
-        if (isThereActiveTracking.value!!) {
-            onStopTrackingClicked(stoppingLocation = currentLocation)
-        } else {
-            onStartTrackingClicked(
-                TrackingAdd(
-                    startLocation = currentLocation,
-                    dateCreated = System.currentTimeMillis()
+        viewModelScope.launch {
+            val isActive = isThereActiveTrackingUseCase()
+            if (isActive) {
+                onStopTrackingClicked(stoppingLocation = currentLocation)
+            } else {
+                onStartTrackingClicked(
+                    TrackingAdd(
+                        startLocation = currentLocation,
+                        dateCreated = System.currentTimeMillis()
+                    )
                 )
-            )
+            }
+            updateActiveTrackingStatus()
+        }
+    }
+
+    fun sendCellLog(cellLogRequest: CellLogRequest) {
+        viewModelScope.launch {
+            saveCellLogUseCase(cellLogRequest)
+            _cellLogFinish.call()
+        }
+    }
+
+    // Go back and forth between activity and viewmodel since cell-log retrieval is computationally intensive
+    fun onLocationUpdate(lastLocation: LatLng?) {
+        viewModelScope.launch {
+            if (lastLocation != null) {
+                val isActive = isThereActiveTrackingUseCase()
+                if (isActive) {
+                    _requestCellLog.value = lastLocation
+                }
+            }
         }
     }
 }
