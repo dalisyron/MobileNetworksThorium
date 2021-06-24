@@ -23,8 +23,6 @@ interface TrackingRepository {
 
     suspend fun getAllTrackings(): List<Tracking>
 
-    fun isThereActiveTrackingFlow(): Flow<Boolean>
-
     suspend fun getTrackingById(id: Int): Tracking
 
     suspend fun isThereActiveTracking(): Boolean

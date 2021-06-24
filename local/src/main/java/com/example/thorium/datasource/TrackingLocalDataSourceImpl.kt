@@ -110,10 +110,6 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         }
     }
 
-    override fun isThereActiveTrackingFlow(): Flow<Boolean> {
-        return trackingDao.getActiveTrackingsFlow().map { it.any { tracking -> tracking.isActive } }
-    }
-
     override suspend fun getTrackingById(id: Int): Tracking = withContext(Dispatchers.IO) {
         val trackingDto = trackingDao.getTrackingById(id)[0]
 
