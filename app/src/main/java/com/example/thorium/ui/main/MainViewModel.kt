@@ -30,6 +30,9 @@ class MainViewModel @Inject constructor(
                 R.id.navigation_dashboard -> {
                     changeAppStateUseCase(AppState.Dashboard)
                 }
+                R.id.navigation_settings -> {
+                    changeAppStateUseCase(AppState.Settings)
+                }
             }
         }
     }

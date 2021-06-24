@@ -32,12 +32,28 @@ class AppStateRepositoryImpl : AppStateRepository {
                     AppState.Home -> {
                         _navigationAction.send(NavigationAction.FromDashboardToHome)
                     }
+                    AppState.Settings -> {
+                        _navigationAction.send(NavigationAction.FromDashboardToSettings)
+                    }
                 }
             }
             AppState.Home -> {
                 when (state) {
                     AppState.Dashboard -> {
                         _navigationAction.send(NavigationAction.FromHomeToDashboard)
+                    }
+                    AppState.Settings -> {
+                        _navigationAction.send(NavigationAction.FromHomeToSettings)
+                    }
+                }
+            }
+            AppState.Settings -> {
+                when (state) {
+                    AppState.Dashboard -> {
+                        _navigationAction.send(NavigationAction.FromSettingsToDashboard)
+                    }
+                    AppState.Home -> {
+                        _navigationAction.send(NavigationAction.FromSettingsToHome)
                     }
                 }
             }
@@ -48,6 +64,9 @@ class AppStateRepositoryImpl : AppStateRepository {
                     }
                     AppState.Dashboard -> {
                         _navigationAction.send(NavigationAction.StartDashboard)
+                    }
+                    AppState.Settings -> {
+                        _navigationAction.send(NavigationAction.StartSettings)
                     }
                 }
             }
