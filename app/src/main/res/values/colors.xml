@@ -12,6 +12,8 @@
     <color name="cyan">#00BCD4</color>
     <color name="red">#FB0A0A</color>
     <color name="magenta">#BF07E3</color>
+    <color name="dark_gray">#4C4C4C</color>
     <color name="green">#4CAF50</color>
     <color name="mapboxGreen">#56B881</color>
+    <color name="gray">#858383</color>
 </resources>

@@ -15,4 +15,8 @@ class PreferenceRepositoryImpl constructor(
     override suspend fun getAllPreferences(): List<Preference> {
         return dataStoreManager.getAllPreferences()
     }
+
+    override suspend fun setDefaultPreferencesIfNeeded(g2Color: Int, g3Color: Int, g4Color: Int) {
+        dataStoreManager.setDefaultPreferencesIfNeeded(g2Color, g3Color, g4Color)
+    }
 }

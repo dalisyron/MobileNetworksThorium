@@ -32,10 +32,14 @@ class DataStoreManagerImpl @Inject constructor(
             KEY_3G_COLOR,
             KEY_4G_COLOR,
         )
-    }
 
-    private fun mapFrom(preferenceKey: PreferenceKey): Preferences.Key<Int> {
-        return keyList[preferenceKey.value]
+        fun mapFrom(preferenceKey: PreferenceKey): Preferences.Key<Int> {
+            return keyList[preferenceKey.value]
+        }
+
+        fun mapTo(key: Preferences.Key<Int>): PreferenceKey {
+            return PreferenceKey(keyList.indexOf(key))
+        }
     }
 
     private fun mapTo(key: Preferences.Key<Int>): PreferenceKey {
@@ -100,6 +104,13 @@ class DataStoreManagerImpl @Inject constructor(
         return allPreferences
     }
 
+    override suspend fun setDefaultPreferencesIfNeeded(g2Color: Int, g3Color: Int, g4Color: Int) {
+        if (isPreferencesEmpty()) {
+            set2GColor(g2Color)
+            set3GColor(g3Color)
+            set4GColor(g4Color)
+        }
+    }
 
     private fun createPreference(title: String, key: Preferences.Key<Int>, color: Int): Preference {
         return Preference(

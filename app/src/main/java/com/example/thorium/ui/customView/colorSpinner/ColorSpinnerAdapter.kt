@@ -40,7 +40,8 @@ class ColorSpinnerAdapter : ColorSpinnerBaseAdapter() {
 
             binding.apply {
                 tvName.text = item.name
-                vColor.setBackgroundResource(item.color)
+                vColor.backgroundTintList =
+                    ContextCompat.getColorStateList(binding.root.context, item.color)
             }
         }
 
