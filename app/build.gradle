@@ -59,6 +59,9 @@ dependencies {
     // Picasso
     implementation "com.squareup.picasso:picasso:$libraries.picasso"
 
+    // Data Store
+    implementation("androidx.datastore:datastore-preferences:$libraries.datastore")
+
     // Fragment-ktx
     implementation("androidx.fragment:fragment-ktx:$libraries.fragment")
     implementation "androidx.fragment:fragment:$libraries.fragment"

@@ -2,15 +2,19 @@ package com.example.thorium.di
 
 import android.content.Context
 import androidx.room.Room
+import com.example.data.datasource.DataStoreManager
 import com.example.data.datasource.TrackingLocalDataSource
 import com.example.data.repository.AppStateRepositoryImpl
+import com.example.data.repository.PreferenceRepositoryImpl
 import com.example.data.repository.TrackingRepositoryImpl
 import com.example.thorium.dao.CellLogDao
 import com.example.thorium.dao.TrackingDao
 import com.example.thorium.database.MainDatabase
 import com.example.thorium.database.MainTypeConverters
+import com.example.thorium.datasource.DataStoreManagerImpl
 import com.example.thorium.datasource.TrackingLocalDataSourceImpl
 import com.example.usecase.repository.AppStateRepository
+import com.example.usecase.repository.PreferenceRepository
 import com.example.usecase.repository.TrackingRepository
 import dagger.Module
 import dagger.Provides
@@ -62,7 +66,19 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun providePreferenceRepository(dataStoreManager: DataStoreManager): PreferenceRepository {
+        return PreferenceRepositoryImpl(dataStoreManager)
+    }
+
+    @Singleton
+    @Provides
     fun provideAppStateRepository(): AppStateRepository {
         return AppStateRepositoryImpl()
+    }
+
+    @Singleton
+    @Provides
+    fun provideDataStoreManager(@ApplicationContext context: Context): DataStoreManager {
+        return DataStoreManagerImpl(context)
     }
 }

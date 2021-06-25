@@ -3,6 +3,8 @@ package com.example.common.entity
 sealed class Cell(
     val mcc: Int,
     val mnc: Int,
+    val loc: Int,
+    val id: Int,
     val strength: Int,
     val registered: Boolean
 )
@@ -17,6 +19,8 @@ class CellWcdma(
 ) : Cell(
     mcc = mcc,
     mnc = mnc,
+    id = psc,
+    loc = lac,
     strength = strength,
     registered = registered
 ) {
@@ -50,6 +54,8 @@ class CellLte(
 ) : Cell(
     mcc = mcc,
     mnc = mnc,
+    id = pci,
+    loc = tac,
     strength = strength,
     registered = registered
 ) {
@@ -83,6 +89,8 @@ class CellGsm(
 ) : Cell(
     mcc = mcc,
     mnc = mnc,
+    id = bsic,
+    loc = lac,
     strength = strength,
     registered = registered
 ) {
