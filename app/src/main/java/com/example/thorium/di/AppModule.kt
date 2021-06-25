@@ -10,6 +10,7 @@ import com.example.thorium.dao.TrackingDao
 import com.example.thorium.database.MainDatabase
 import com.example.thorium.database.MainTypeConverters
 import com.example.thorium.datasource.TrackingLocalDataSourceImpl
+import com.example.thorium.util.DataStoreManager
 import com.example.usecase.repository.AppStateRepository
 import com.example.usecase.repository.TrackingRepository
 import dagger.Module
@@ -64,5 +65,11 @@ object AppModule {
     @Provides
     fun provideAppStateRepository(): AppStateRepository {
         return AppStateRepositoryImpl()
+    }
+
+    @Singleton
+    @Provides
+    fun provideDataStoreManager(@ApplicationContext context: Context): DataStoreManager {
+        return DataStoreManager(context)
     }
 }
