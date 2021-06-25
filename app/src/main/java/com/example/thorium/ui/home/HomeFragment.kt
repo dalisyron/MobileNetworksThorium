@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.common.entity.Cell
 import com.example.common.entity.CellLogRequest
+import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.thorium.R
@@ -177,6 +178,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
             }
         })
 
+        homeViewModel.trackingMode.observe(viewLifecycleOwner, { trackingMode ->
+            when (trackingMode) {
+                is TrackingMode.Code -> TODO()
+                is TrackingMode.Generation -> setupGenerationMode(trackingMode.generationsColorsData)
+                is TrackingMode.Location -> TODO()
+                is TrackingMode.Strength -> TODO()
+            }
+        })
+
         homeViewModel.alert.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
         }
@@ -208,6 +218,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
             fabCellLogPressRunnable.run()
             addMarker(logLocation, 0)
         })
+
+    }
+
+    private fun setupGenerationMode(generationsColorsData: GenerationsColorsData) {
 
     }
 

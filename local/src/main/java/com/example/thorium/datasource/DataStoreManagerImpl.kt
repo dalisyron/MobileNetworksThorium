@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.Preference
 import com.example.common.entity.PreferenceKey
 import com.example.data.datasource.DataStoreManager
@@ -128,5 +129,13 @@ class DataStoreManagerImpl @Inject constructor(
             KEY_3G_COLOR -> set3GColor(preference.value)
             KEY_4G_COLOR -> set4GColor(preference.value)
         }
+    }
+
+    override suspend fun getGenerationsColors(): GenerationsColorsData {
+        return GenerationsColorsData(
+            get2GColor().first(),
+            get3GColor().first(),
+            get4GColor().first(),
+        )
     }
 }

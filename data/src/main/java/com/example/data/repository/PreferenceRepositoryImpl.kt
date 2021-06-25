@@ -1,5 +1,6 @@
 package com.example.data.repository
 
+import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.Preference
 import com.example.data.datasource.DataStoreManager
 import com.example.usecase.repository.PreferenceRepository
@@ -18,5 +19,9 @@ class PreferenceRepositoryImpl constructor(
 
     override suspend fun setDefaultPreferencesIfNeeded(g2Color: Int, g3Color: Int, g4Color: Int) {
         dataStoreManager.setDefaultPreferencesIfNeeded(g2Color, g3Color, g4Color)
+    }
+
+    override suspend fun getGenerationsColors(): GenerationsColorsData {
+        return dataStoreManager.getGenerationsColors()
     }
 }
