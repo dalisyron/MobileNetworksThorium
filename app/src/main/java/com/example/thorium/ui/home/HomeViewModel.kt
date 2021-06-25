@@ -52,6 +52,7 @@ class HomeViewModel @Inject constructor(
     private val _cellLogFinish: SingleLiveEvent<Unit> = SingleLiveEvent()
     val cellLogFinish = _cellLogFinish
 
+
     private val _trackingMode: MutableLiveData<TrackingMode> = MutableLiveData()
     val trackingMode: LiveData<TrackingMode> = _trackingMode
 
