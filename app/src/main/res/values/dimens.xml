@@ -2,4 +2,9 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="drop_down_width">200dp</dimen>
+    <dimen name="drop_down_height">34dp</dimen>
+    <dimen name="drawable_right_padding">12dp</dimen>
+    <dimen name="drop_down_vertical_padding">4dp</dimen>
+    <dimen name="popupElevation">5dp</dimen>
 </resources>
