@@ -5,6 +5,7 @@ import android.content.Context
 import com.example.data.datasource.DataStoreManager
 import com.example.thorium.R
 import com.example.thorium.database.MainDatabaseManager
+import com.example.thorium.util.ColorUtils
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
@@ -25,9 +26,9 @@ class ThoriumApp : Application() {
 
         runBlocking {
             dataStoreManager.setDefaultPreferencesIfNeeded(
-                R.color.red,
-                R.color.blue,
-                R.color.magenta
+                ColorUtils.mapFromResToInt(R.color.red),
+                ColorUtils.mapFromResToInt(R.color.blue),
+                ColorUtils.mapFromResToInt(R.color.magenta)
             )
         }
     }

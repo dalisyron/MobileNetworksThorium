@@ -66,7 +66,7 @@ class PreferenceViewHolder(
             ColorSpinnerView.OnItemChangeListener {
             override fun onChange(colorSpinnerItem: ColorSpinnerItem) {
                 preference.apply {
-                    value = colorSpinnerItem.color
+                    value = ColorUtils.mapFromResToInt(colorSpinnerItem.color)
                 }.also {
                     onPreferenceChange.onPreferenceChange(it)
                 }
@@ -75,6 +75,7 @@ class PreferenceViewHolder(
     }
 
     fun bind(preference: Preference) {
+        preference.value = ColorUtils.mapFromIntToRes(preference.value)
         this.preference = preference
 
         binding.apply {

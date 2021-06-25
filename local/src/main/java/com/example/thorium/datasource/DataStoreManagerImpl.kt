@@ -42,10 +42,6 @@ class DataStoreManagerImpl @Inject constructor(
         }
     }
 
-    private fun mapTo(key: Preferences.Key<Int>): PreferenceKey {
-        return PreferenceKey(keyList.indexOf(key))
-    }
-
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
     suspend fun set2GColor(value: Int) =
@@ -120,7 +116,7 @@ class DataStoreManagerImpl @Inject constructor(
         )
     }
 
-    suspend fun isPreferencesEmpty(): Boolean {
+    private suspend fun isPreferencesEmpty(): Boolean {
         return context.dataStore.data.map { preferences ->
             preferences
         }.first().asMap().keys.isEmpty()
