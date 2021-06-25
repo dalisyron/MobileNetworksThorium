@@ -3,17 +3,26 @@ package com.example.thorium.ui.home
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.example.common.entity.Cell
 import com.example.common.entity.CellLogRequest
+import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.thorium.R
 import com.example.thorium.databinding.FragmentHomeBinding
@@ -21,9 +30,11 @@ import com.example.thorium.service.cellular.CellularService
 import com.example.thorium.service.cellular.CellularServiceImpl
 import com.example.thorium.service.location.LocationService
 import com.example.thorium.service.location.LocationServiceImpl
+import com.example.thorium.service.location.RepeatingTask
+import com.example.thorium.util.FakeLocationProvider
 import com.example.thorium.util.checkSelfPermissionCompat
+import com.example.thorium.util.toLatLng
 import com.example.thorium.util.toPoint
-import com.example.usecase.repository.TrackingRepository
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.mapboxsdk.Mapbox
@@ -32,44 +43,21 @@ import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
+import com.mapbox.mapboxsdk.location.LocationUpdate
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_home.*
-import javax.inject.Inject
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
-
-import com.mapbox.mapboxsdk.style.layers.LineLayer
-
-import android.graphics.Color
-import android.os.Handler
-import android.os.Looper
-<<<<<<< HEAD
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-=======
-import androidx.annotation.ColorRes
-import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.Observer
-import com.example.common.entity.Cell
-import com.example.common.entity.LatLngEntity
->>>>>>> fef61dafe86b46f513b193e9c38a923be0e192bb
-import com.mapbox.mapboxsdk.style.layers.Property
-import com.example.thorium.service.location.RepeatingTask
-import com.example.thorium.util.FakeLocationProvider
-import com.example.thorium.util.toLatLng
-import com.mapbox.mapboxsdk.location.LocationUpdate
-<<<<<<< HEAD
-import com.mapbox.mapboxsdk.style.expressions.Expression.array
-=======
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.layers.LineLayer
+import com.mapbox.mapboxsdk.style.layers.Property
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.mapboxsdk.utils.BitmapUtils
->>>>>>> fef61dafe86b46f513b193e9c38a923be0e192bb
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_home.*
 
 
 @AndroidEntryPoint
