@@ -8,13 +8,15 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.common.entity.Preference
 import com.example.common.entity.PreferenceKey
+import com.example.data.datasource.DataStoreManager
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-class DataStoreManager constructor(
+class DataStoreManagerImpl @Inject constructor(
     val context: Context
-) {
+) : DataStoreManager {
 
     companion object {
         private const val TITLE_2G_COLOR = "2G Color"
@@ -72,7 +74,7 @@ class DataStoreManager constructor(
             preferences[KEY_4G_COLOR]!!
         }
 
-    suspend fun getAllPreferences(): List<Preference> {
+    override suspend fun getAllPreferences(): List<Preference> {
         val allPreferences = ArrayList<Preference>()
 
         allPreferences.addAll(
@@ -111,5 +113,13 @@ class DataStoreManager constructor(
         return context.dataStore.data.map { preferences ->
             preferences
         }.first().asMap().keys.isEmpty()
+    }
+
+    override suspend fun setPreference(preference: Preference) {
+        when (mapFrom(preference.key)) {
+            KEY_2G_COLOR -> set2GColor(preference.value)
+            KEY_3G_COLOR -> set3GColor(preference.value)
+            KEY_4G_COLOR -> set4GColor(preference.value)
+        }
     }
 }

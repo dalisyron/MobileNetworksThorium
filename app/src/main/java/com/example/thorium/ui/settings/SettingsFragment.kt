@@ -56,7 +56,7 @@ class SettingsFragment : Fragment(), PreferenceAdapter.OnPreferenceChange {
     }
 
     override fun onPreferenceChange(newPreference: Preference) {
-
+        settingsViewModel.setPreference(newPreference)
     }
 
     companion object {

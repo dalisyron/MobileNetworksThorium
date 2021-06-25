@@ -2,9 +2,10 @@ package com.example.thorium.app
 
 import android.app.Application
 import android.content.Context
+import com.example.data.datasource.DataStoreManager
 import com.example.thorium.R
 import com.example.thorium.database.MainDatabaseManager
-import com.example.thorium.datasource.DataStoreManager
+import com.example.thorium.datasource.DataStoreManagerImpl
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
@@ -23,18 +24,18 @@ class ThoriumApp : Application() {
         ThoriumApp.applicationContext = this
         mainDatabaseManager.onStart()
 
-        runBlocking {
-            if (dataStoreManager.isPreferencesEmpty()) {
-                setDefaultPreferences()
-            }
-        }
+//        runBlocking {
+//            if (dataStoreManager.isPreferencesEmpty()) {
+//                setDefaultPreferences()
+//            }
+//        }
     }
 
-    private suspend fun setDefaultPreferences() {
-        dataStoreManager.set2GColor(R.color.blue)
-        dataStoreManager.set3GColor(R.color.red)
-        dataStoreManager.set4GColor(R.color.green)
-    }
+//    private suspend fun setDefaultPreferences() {
+//        dataStoreManager.set2GColor(R.color.blue)
+//        dataStoreManager.set3GColor(R.color.red)
+//        dataStoreManager.set4GColor(R.color.green)
+//    }
 
     companion object {
         var applicationContext: Context? = null
