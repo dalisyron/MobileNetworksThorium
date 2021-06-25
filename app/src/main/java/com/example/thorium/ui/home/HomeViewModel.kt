@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.common.entity.CellLog
 import com.example.common.entity.CellLogRequest
 import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.LatLngEntity
@@ -51,24 +52,43 @@ class HomeViewModel @Inject constructor(
     private val _cellLogFinish: SingleLiveEvent<Unit> = SingleLiveEvent()
     val cellLogFinish = _cellLogFinish
 
-    private val _trackingMode: SingleLiveEvent<TrackingMode> = SingleLiveEvent()
-    val trackingMode = _trackingMode
+    private val _trackingMode: MutableLiveData<TrackingMode> = MutableLiveData()
+    val trackingMode: LiveData<TrackingMode> = _trackingMode
 
-    private val _showTrackingOnMap: MutableLiveData<Tracking> = MutableLiveData()
-    val showTrackingOnMap: LiveData<Tracking> = _showTrackingOnMap
+    private val _showTrackingOnMap: MutableLiveData<Pair<Tracking, TrackingMode>> =
+        MutableLiveData()
+    val showTrackingOnMap: LiveData<Pair<Tracking, TrackingMode>> = _showTrackingOnMap
+
+    private val _addMarker: MutableLiveData<Pair<CellLog, TrackingMode>> = MutableLiveData()
+    val addMarker = _addMarker
+
+    private val _clearMarkers: SingleLiveEvent<Unit> = SingleLiveEvent()
+    val clearMarkers: LiveData<Unit> = _clearMarkers
+
+    var trackingModeString: String? = null
 
     fun initialize() {
         viewModelScope.launch {
             val tracking = getSelectedForDisplayTracking()
             if (loadTrackingOnMapUseCase()) {
-                showMarkers(tracking)
+                showMarkers(tracking!!, trackingMode.value!!)
             }
             _displayedTracking.value = tracking
         }
+        viewModelScope.launch {
+            _clearMarkers.call()
+            val tracking = getSelectedForDisplayTracking()
+            tracking?.let {
+                _showTrackingOnMap.value = Pair(it, _trackingMode.value!!)
+            }
+        }
+        trackingModeString?.let {
+            onModeChange(it)
+        }
     }
 
-    private fun showMarkers(tracking: Tracking?) {
-        _showTrackingOnMap.value = tracking
+    private fun showMarkers(tracking: Tracking, trackingMode: TrackingMode) {
+        _showTrackingOnMap.value = Pair(tracking, trackingMode)
     }
 
     private suspend fun runUseCase(successMessage: String, useCase: suspend () -> Unit) {
@@ -96,8 +116,14 @@ class HomeViewModel @Inject constructor(
 
     fun onSaveCellLogClicked(cellLogRequest: CellLogRequest) {
         viewModelScope.launch {
-            saveCellLogUseCase(cellLogRequest)
+            val isActive = isThereActiveTrackingUseCase()
+            if (!isActive) {
+                _alert.value = "Error: No active trackings."
+                return@launch
+            }
+            val cellLog = saveCellLogUseCase(cellLogRequest)
             updateDisplayedTracking()
+            _addMarker.value = Pair(cellLog, trackingMode.value!!)
         }
     }
 
@@ -126,14 +152,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun sendCellLog(cellLogRequest: CellLogRequest) {
-        viewModelScope.launch {
-            saveCellLogUseCase(cellLogRequest)
-            _cellLogFinish.call()
-            updateDisplayedTracking()
-        }
-    }
-
     // Go back and forth between activity and viewmodel since cell-log retrieval is computationally intensive
     fun onLocationUpdate(lastLocation: LatLngEntity?) {
         viewModelScope.launch {
@@ -147,6 +165,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onModeChange(mode: String) {
+        trackingModeString = mode
         when (mode) {
             extractString(R.string.mode_generation) -> {
                 viewModelScope.launch {
