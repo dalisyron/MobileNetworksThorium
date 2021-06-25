@@ -59,17 +59,17 @@ class DataStoreManager constructor(
 
     fun get2GColor(): Flow<Int> =
         context.dataStore.data.map { preferences ->
-            preferences[KEY_2G_COLOR] ?: -1
+            preferences[KEY_2G_COLOR]!!
         }
 
     fun get3GColor(): Flow<Int> =
         context.dataStore.data.map { preferences ->
-            preferences[KEY_3G_COLOR] ?: -1
+            preferences[KEY_3G_COLOR]!!
         }
 
     fun get4GColor(): Flow<Int> =
         context.dataStore.data.map { preferences ->
-            preferences[KEY_4G_COLOR] ?: -1
+            preferences[KEY_4G_COLOR]!!
         }
 
     suspend fun getAllPreferences(): List<Preference> {
@@ -105,5 +105,11 @@ class DataStoreManager constructor(
             mapTo(key),
             color
         )
+    }
+
+    suspend fun isPreferencesEmpty(): Boolean {
+        return context.dataStore.data.map { preferences ->
+            preferences
+        }.first().asMap().keys.isEmpty()
     }
 }

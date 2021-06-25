@@ -3,6 +3,7 @@ package com.example.thorium.ui.customView.colorSpinner
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.thorium.databinding.ItemColorSpinnerBinding
 
@@ -39,7 +40,7 @@ class ColorSpinnerAdapter : ColorSpinnerBaseAdapter() {
 
             binding.apply {
                 tvName.text = item.name
-                vColor.setBackgroundColor(item.color)
+                vColor.setBackgroundResource(item.color)
             }
         }
 

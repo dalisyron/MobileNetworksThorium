@@ -2,14 +2,14 @@ package com.example.thorium.ui.customView.colorSpinner
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.PopupWindow
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.thorium.R
@@ -71,8 +71,10 @@ class ColorSpinnerView @JvmOverloads constructor(
     private fun setupItem(colorSpinnerItem: ColorSpinnerItem) {
         text = colorSpinnerItem.name
         val drawable = compoundDrawables[2]
-        drawable.colorFilter =
-            PorterDuffColorFilter(colorSpinnerItem.color, PorterDuff.Mode.SRC_IN)
+        DrawableCompat.setTint(
+            DrawableCompat.wrap(drawable),
+            ContextCompat.getColor(context, colorSpinnerItem.color)
+        )
     }
 
     private fun recalculatePopupWindowHeight() {
