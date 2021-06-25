@@ -4,20 +4,20 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.common.entity.Preference
 import com.example.thorium.databinding.ItemPreferenceSpinnerBinding
 import com.example.thorium.ui.customView.colorSpinner.ColorSpinnerAdapter
 import com.example.thorium.ui.customView.colorSpinner.ColorSpinnerItem
 import com.example.thorium.ui.customView.colorSpinner.ColorSpinnerView
 import com.example.thorium.util.ColorUtils
-import com.example.thorium.util.DataStoreManager
 
 
 class PreferenceAdapter(
     val onPreferenceChange: OnPreferenceChange
-) : ListAdapter<DataStoreManager.Preference, PreferenceViewHolder>(DiffUtil) {
+) : ListAdapter<Preference, PreferenceViewHolder>(DiffUtil) {
 
     interface OnPreferenceChange {
-        fun onPreferenceChange(newPreference: DataStoreManager.Preference)
+        fun onPreferenceChange(newPreference: Preference)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PreferenceViewHolder {
@@ -32,17 +32,17 @@ class PreferenceAdapter(
 }
 
 internal object DiffUtil :
-    androidx.recyclerview.widget.DiffUtil.ItemCallback<DataStoreManager.Preference>() {
+    androidx.recyclerview.widget.DiffUtil.ItemCallback<Preference>() {
     override fun areItemsTheSame(
-        oldItem: DataStoreManager.Preference,
-        newItem: DataStoreManager.Preference
+        oldItem: Preference,
+        newItem: Preference
     ): Boolean {
         return true
     }
 
     override fun areContentsTheSame(
-        oldItem: DataStoreManager.Preference,
-        newItem: DataStoreManager.Preference
+        oldItem: Preference,
+        newItem: Preference
     ): Boolean {
         return oldItem == newItem
     }
@@ -53,7 +53,7 @@ class PreferenceViewHolder(
     onPreferenceChange: PreferenceAdapter.OnPreferenceChange
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    private lateinit var preference: DataStoreManager.Preference
+    private lateinit var preference: Preference
 
     init {
         ColorSpinnerAdapter().apply {
@@ -74,7 +74,7 @@ class PreferenceViewHolder(
         })
     }
 
-    fun bind(preference: DataStoreManager.Preference) {
+    fun bind(preference: Preference) {
         this.preference = preference
 
         binding.apply {

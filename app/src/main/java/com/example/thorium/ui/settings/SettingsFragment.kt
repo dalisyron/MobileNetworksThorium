@@ -1,15 +1,14 @@
 package com.example.thorium.ui.settings
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.common.entity.Preference
 import com.example.thorium.databinding.FragmentSettingsBinding
-import com.example.thorium.util.DataStoreManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_settings.rvList
 
@@ -56,7 +55,7 @@ class SettingsFragment : Fragment(), PreferenceAdapter.OnPreferenceChange {
         _binding = null
     }
 
-    override fun onPreferenceChange(newPreference: DataStoreManager.Preference) {
+    override fun onPreferenceChange(newPreference: Preference) {
 
     }
 
