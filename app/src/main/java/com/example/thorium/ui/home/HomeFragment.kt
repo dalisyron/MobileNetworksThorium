@@ -48,14 +48,17 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.example.thorium.service.location.RepeatingTask
 import com.example.thorium.util.FakeLocationProvider
 import com.mapbox.mapboxsdk.location.LocationUpdate
+import com.mapbox.mapboxsdk.style.expressions.Expression.array
 
 
 @AndroidEntryPoint
-class HomeFragment : Fragment(), OnMapReadyCallback {
+class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
     private var _binding: FragmentHomeBinding? = null
 
@@ -119,6 +122,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         Log.e("BBBBB", "onViewCreated: was called")
 
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.modes,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            binding.spinnerMode.adapter = adapter
+            binding.spinnerMode.onItemSelectedListener = this
+        }
         binding.mapView.apply {
             onCreate(savedInstanceState)
             getMapAsync(this@HomeFragment)
@@ -340,5 +351,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         fun getInstance(): HomeFragment {
             return HomeFragment()
         }
+    }
+
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+        homeViewModel.onModeChange(parent?.getItemAtPosition(pos) as String)
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {
+        // empty
     }
 }

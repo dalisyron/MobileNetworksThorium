@@ -118,4 +118,8 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun onModeChange(mode: String) {
+
+    }
 }
