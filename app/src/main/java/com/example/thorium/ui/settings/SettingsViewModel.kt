@@ -1,5 +1,6 @@
 package com.example.thorium.ui.settings
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.common.entity.Preference
@@ -23,6 +24,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val prefs = dataStoreManager.getAllPreferences()
             withContext(Dispatchers.Main) {
+                Log.e("AAA", "$prefs")
                 preferenceList.value = prefs
             }
         }
