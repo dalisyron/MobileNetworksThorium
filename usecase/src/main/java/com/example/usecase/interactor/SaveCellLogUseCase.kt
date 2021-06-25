@@ -8,7 +8,7 @@ import javax.inject.Inject
 class SaveCellLogUseCase @Inject constructor(
     private val trackingRepository: TrackingRepository
 ){
-    suspend operator fun invoke(cellLogRequest: CellLogRequest) {
+    suspend operator fun invoke(cellLogRequest: CellLogRequest): CellLog {
         val cellLog = CellLog(
             trackingId = trackingRepository.getActiveTrackingId(),
             cell = cellLogRequest.cell,
@@ -16,5 +16,6 @@ class SaveCellLogUseCase @Inject constructor(
             dateCreated = System.currentTimeMillis()
         )
         trackingRepository.addNewCellLog(cellLog)
+        return cellLog
     }
 }

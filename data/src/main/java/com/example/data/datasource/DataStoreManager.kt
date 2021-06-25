@@ -1,5 +1,6 @@
 package com.example.data.datasource
 
+import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.Preference
 
 interface DataStoreManager {
@@ -12,4 +13,6 @@ interface DataStoreManager {
         g3Color: Int,
         g4Color: Int,
     )
+
+    suspend fun getGenerationsColors(): GenerationsColorsData
 }

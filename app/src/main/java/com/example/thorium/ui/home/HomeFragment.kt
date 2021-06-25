@@ -2,18 +2,33 @@ package com.example.thorium.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.example.common.entity.Cell
+import com.example.common.entity.CellGsm
+import com.example.common.entity.CellLog
 import com.example.common.entity.CellLogRequest
+import com.example.common.entity.CellLte
+import com.example.common.entity.CellWcdma
+import com.example.common.entity.GenerationsColorsData
+import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.thorium.R
 import com.example.thorium.databinding.FragmentHomeBinding
@@ -21,9 +36,12 @@ import com.example.thorium.service.cellular.CellularService
 import com.example.thorium.service.cellular.CellularServiceImpl
 import com.example.thorium.service.location.LocationService
 import com.example.thorium.service.location.LocationServiceImpl
+import com.example.thorium.service.location.RepeatingTask
+import com.example.thorium.util.ColorUtils
+import com.example.thorium.util.FakeLocationProvider
 import com.example.thorium.util.checkSelfPermissionCompat
+import com.example.thorium.util.toLatLng
 import com.example.thorium.util.toPoint
-import com.example.usecase.repository.TrackingRepository
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.mapboxsdk.Mapbox
@@ -32,43 +50,51 @@ import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
+import com.mapbox.mapboxsdk.location.LocationUpdate
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_home.*
-import javax.inject.Inject
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
-
-import com.mapbox.mapboxsdk.style.layers.LineLayer
-
-import android.graphics.Color
-import android.os.Handler
-import android.os.Looper
-import androidx.annotation.ColorRes
-import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.Observer
-import com.example.common.entity.Cell
-import com.example.common.entity.LatLngEntity
-import com.mapbox.mapboxsdk.style.layers.Property
-import com.example.thorium.service.location.RepeatingTask
-import com.example.thorium.util.FakeLocationProvider
-import com.example.thorium.util.toLatLng
-import com.mapbox.mapboxsdk.location.LocationUpdate
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.layers.LineLayer
+import com.mapbox.mapboxsdk.style.layers.Property
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.mapboxsdk.utils.BitmapUtils
+import dagger.hilt.android.AndroidEntryPoint
+import java.lang.IllegalArgumentException
+import kotlinx.android.synthetic.main.fragment_home.*
+import com.mapbox.mapboxsdk.annotations.IconFactory
+
+import androidx.core.graphics.drawable.DrawableCompat
+
+import android.graphics.Bitmap
+import android.graphics.Canvas
+
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.VectorDrawable
+
+import androidx.annotation.ColorInt
+
+import androidx.annotation.DrawableRes
+
+import androidx.annotation.NonNull
+import com.mapbox.mapboxsdk.annotations.Icon
+import com.mapbox.mapboxsdk.annotations.MarkerOptions
 
 
 @AndroidEntryPoint
-class HomeFragment : Fragment(), OnMapReadyCallback {
+class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
     private var _binding: FragmentHomeBinding? = null
 
-    private lateinit var mapboxMap: MapboxMap
+    private var _mapboxMap: MapboxMap? = null
+
+    private val mapboxMap by lazy {
+        requireNotNull(_mapboxMap)
+    }
 
     private val homeViewModel: HomeViewModel by viewModels()
 
@@ -102,6 +128,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private val fakeLocationProvider = FakeLocationProvider()
 
+    private lateinit var trackingMode: TrackingMode
+
     val fakeLocationRepeatingTask =
         RepeatingTask(handler = Handler(Looper.getMainLooper()), LOCATION_UPDATE_DELAY) {
             mapboxMap.locationComponent.forceLocationUpdate(
@@ -127,6 +155,21 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         Log.e("BBBBB", "onViewCreated: was called")
 
+        initViews(savedInstanceState)
+
+        initObservers()
+
+    }
+
+    private fun initViews(savedInstanceState: Bundle?) {
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.modes,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            binding.spinnerMode.adapter = adapter
+            binding.spinnerMode.onItemSelectedListener = this
+        }
         binding.mapView.apply {
             onCreate(savedInstanceState)
             getMapAsync(this@HomeFragment)
@@ -152,7 +195,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     cellularService.getActiveCells()[0],
                     location
                 )
-                addMarker(location, 0)
             }
         }
 
@@ -165,10 +207,24 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 fakeLocationRepeatingTask.start()
             }
         }
+    }
 
-        homeViewModel.showTrackingOnMap.observe(viewLifecycleOwner, { tracking ->
-            tracking?.cellLogs?.forEach {
-                addMarker(it.location, 0)
+    private fun initObservers() {
+        homeViewModel.showTrackingOnMap.observe(viewLifecycleOwner, { trackingModePair ->
+            val (tracking, mode) = trackingModePair
+
+            tracking.cellLogs.forEach {
+                addMarkerByMode(it, mode)
+            }
+        })
+
+        homeViewModel.trackingMode.observe(viewLifecycleOwner, { trackingMode ->
+            this.trackingMode = trackingMode
+            when (trackingMode) {
+                is TrackingMode.Code -> TODO()
+                is TrackingMode.Generation -> setupGenerationMode(trackingMode.generationsColorsData)
+                is TrackingMode.Location -> TODO()
+                is TrackingMode.Strength -> TODO()
             }
         })
 
@@ -201,8 +257,39 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         homeViewModel.requestCellLog.observe(viewLifecycleOwner, { logLocation ->
             saveCellLog(cellularService.getActiveCells()[0], logLocation)
             fabCellLogPressRunnable.run()
-            addMarker(logLocation, 0)
         })
+
+        homeViewModel.addMarker.observe(viewLifecycleOwner, {
+            addMarkerByMode(it.first, it.second)
+        })
+
+        homeViewModel.clearMarkers.observe(viewLifecycleOwner, {
+            if (_mapboxMap != null) {
+                mapboxMap.clear()
+            }
+        })
+    }
+
+    private fun addMarkerByMode(cellLog: CellLog, mode: TrackingMode) {
+        when (mode) {
+            is TrackingMode.Generation -> {
+                when (cellLog.cell) {
+                    is CellLte -> {
+                        addMarker(cellLog.location, mode.generationsColorsData.g4Color)
+                    }
+                    is CellWcdma -> {
+                        addMarker(cellLog.location, mode.generationsColorsData.g3Color)
+                    }
+                    is CellGsm -> {
+                        addMarker(cellLog.location, mode.generationsColorsData.g2Color)
+                    }
+                    else -> throw IllegalArgumentException()
+                }
+            }
+        }
+    }
+
+    private fun setupGenerationMode(generationsColorsData: GenerationsColorsData) {
 
     }
 
@@ -245,7 +332,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
-        this.mapboxMap = mapboxMap
+        this._mapboxMap = mapboxMap
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {
             enableLocationComponent(it) { sendCellLogTask.start() }
             it.addLayer(
@@ -265,6 +352,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             )
             initializeMap()
         }
+
     }
 
     @SuppressLint("MissingPermission")
@@ -343,22 +431,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun addMarker(point: LatLngEntity, @ColorRes color: Int) {
-        val symbolManager = SymbolManager(mapView, mapboxMap, mapboxMap.style!!);
+        val selectedMarkerIconDrawable =
+            ResourcesCompat.getDrawable(this.resources, R.drawable.ic_mapbox_marker_icon_blue, null) as VectorDrawable
 
-        symbolManager.iconAllowOverlap = true;
-        symbolManager.textAllowOverlap = true;
+        val colorVar = ContextCompat.getColor(requireContext(), ColorUtils.mapFromIntToRes(color))
 
-        val symbolOptions = SymbolOptions()
-            .withLatLng(LatLng(point.latitude, point.longitude))
-            .withIconImage(MARKER_ICON)
-            .withIconSize(1.3f)
-
-        val symbol = symbolManager.create(symbolOptions)
-        symbolManager.update(symbol)
-        symbolManager.addClickListener {
-            Toast.makeText(requireContext(), point.toString(), Toast.LENGTH_LONG).show()
-            true
-        }
+        mapboxMap.addMarker(
+            MarkerOptions()
+                .position(LatLng(point.latitude, point.longitude))
+                .icon(drawableToIcon(requireContext(), selectedMarkerIconDrawable, colorVar))
+        )
     }
 
     companion object {
@@ -370,5 +452,25 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         fun getInstance(): HomeFragment {
             return HomeFragment()
         }
+
+        fun drawableToIcon(context: Context, vectorDrawable: VectorDrawable, @ColorInt colorRes: Int): Icon? {
+            val bitmap = Bitmap.createBitmap(
+                vectorDrawable.intrinsicWidth,
+                vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+            vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
+            DrawableCompat.setTint(vectorDrawable, colorRes)
+            vectorDrawable.draw(canvas)
+            return IconFactory.getInstance(context).fromBitmap(bitmap)
+        }
+    }
+
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+        homeViewModel.onModeChange(parent?.getItemAtPosition(pos) as String)
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {
+        // empty
     }
 }

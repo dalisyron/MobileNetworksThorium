@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="modes">
+        <item>@string/mode_generation</item>
+        <item>@string/mode_location</item>
+        <item>@string/mode_code</item>
+        <item>@string/mode_strength</item>
+    </array>
+
+    <string name="mode_generation">Generation</string>
+    <string name="mode_location">Location</string>
+    <string name="mode_code">Code</string>
+    <string name="mode_strength">Strength</string>
+</resources>
