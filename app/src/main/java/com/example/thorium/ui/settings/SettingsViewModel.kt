@@ -1,18 +1,30 @@
 package com.example.thorium.ui.settings
 
-import androidx.lifecycle.*
-import com.example.common.entity.CellLogRequest
-import com.example.common.entity.LatLng
-import com.example.common.entity.Tracking
-import com.example.common.entity.TrackingAdd
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.thorium.util.DataStoreManager
 import com.example.thorium.util.SingleLiveEvent
-import com.example.usecase.interactor.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import java.lang.Exception
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    dataStoreManager: DataStoreManager
 ) : ViewModel() {
+
+    private val _preferenceList = SingleLiveEvent<List<DataStoreManager.Preference>>()
+    val preferenceList = _preferenceList
+
+    init {
+        viewModelScope.launch {
+            val prefs = dataStoreManager.getAllPreferences()
+            withContext(Dispatchers.Main) {
+                preferenceList.value = prefs
+            }
+        }
+    }
+
 }
