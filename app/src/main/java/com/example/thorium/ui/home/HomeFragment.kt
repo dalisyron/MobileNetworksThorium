@@ -50,6 +50,8 @@ import android.os.Handler
 import android.os.Looper
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.example.thorium.service.location.RepeatingTask
+import com.example.thorium.util.FakeLocationProvider
+import com.mapbox.mapboxsdk.location.LocationUpdate
 
 
 @AndroidEntryPoint
@@ -72,7 +74,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         CellularServiceImpl(requireContext())
     }
 
-    private val sendCellLogTask = RepeatingTask(Handler(Looper.getMainLooper()), 2000L) {
+    private val sendCellLogTask = RepeatingTask(Handler(Looper.getMainLooper()), CELL_LOG_REQ_DELAY) {
         homeViewModel.onLocationUpdate(locationService.getLastKnownLocation())
     }
 
@@ -91,6 +93,17 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private val fakeLocationProvider = FakeLocationProvider()
+
+    val fakeLocationRepeatingTask = RepeatingTask(handler = Handler(Looper.getMainLooper()), LOCATION_UPDATE_DELAY) {
+        mapboxMap.locationComponent.forceLocationUpdate(
+            LocationUpdate.Builder()
+                .location(fakeLocationProvider.getNextLocation())
+                .animationDuration(LOCATION_UPDATE_DELAY - 1)
+                .build()
+        )
+    }
+    
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -127,6 +140,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         binding.fabSaveCellLog.setOnClickListener {
             runIfLocationPermissionGranted {
                 saveCellLog()
+            }
+        }
+
+        binding.fabStartRouteSimulation.setOnClickListener {
+            if (mapboxMap.locationComponent.locationEngine == null) {
+                fakeLocationRepeatingTask.stop()
+                enableLocationComponent(mapboxMap.style!!) {}
+            } else {
+                mapboxMap.locationComponent.locationEngine = null
+                fakeLocationRepeatingTask.start()
             }
         }
 
@@ -311,6 +334,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
         const val TAG = "HomeFragment"
+        const val LOCATION_UPDATE_DELAY = 1000L
+        const val CELL_LOG_REQ_DELAY = 2000L
+
         fun getInstance(): HomeFragment {
             return HomeFragment()
         }

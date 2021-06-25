@@ -103,6 +103,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             saveCellLogUseCase(cellLogRequest)
             _cellLogFinish.call()
+            updateDisplayedTracking()
         }
     }
 
