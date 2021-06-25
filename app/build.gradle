@@ -91,6 +91,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.6.1'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.9.0'
 
     implementation "androidx.room:room-runtime:$libraries.room"
     kapt "androidx.room:room-compiler:$libraries.room"

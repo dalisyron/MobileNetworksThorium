@@ -1,6 +1,6 @@
 package com.example.common.entity
 
-data class LatLng(
+data class LatLngEntity(
     val latitude: Double,
     val longitude: Double
 ) {

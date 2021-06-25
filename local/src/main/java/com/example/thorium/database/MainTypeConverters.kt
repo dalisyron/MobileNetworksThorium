@@ -3,11 +3,8 @@ package com.example.thorium.database
 import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
 import com.example.common.entity.*
-import com.example.thorium.util.Json
-import com.google.gson.Gson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
-import java.lang.IllegalArgumentException
 
 @ProvidedTypeConverter
 class MainTypeConverters {
@@ -35,17 +32,17 @@ class MainTypeConverters {
     }
 
     @TypeConverter
-    fun latLngToString(latLng: LatLng?): String {
+    fun latLngToString(latLng: LatLngEntity?): String {
         return latLng?.let { "${it.latitude},${it.longitude}" } ?: "None"
     }
 
     @TypeConverter
-    fun stringToLatLng(string: String): LatLng? {
+    fun stringToLatLng(string: String): LatLngEntity? {
         if (string == "None") {
             return null
         } else {
             val (lat, lon) = string.split(',').map { it.toDouble() }
-            return LatLng(lat, lon)
+            return LatLngEntity(lat, lon)
         }
     }
 }

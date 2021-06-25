@@ -48,10 +48,19 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.ColorRes
+import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.Observer
+import com.example.common.entity.Cell
+import com.example.common.entity.LatLngEntity
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.example.thorium.service.location.RepeatingTask
 import com.example.thorium.util.FakeLocationProvider
+import com.example.thorium.util.toLatLng
 import com.mapbox.mapboxsdk.location.LocationUpdate
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.utils.BitmapUtils
 
 
 @AndroidEntryPoint
@@ -60,9 +69,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentHomeBinding? = null
 
     private lateinit var mapboxMap: MapboxMap
-
-    @Inject
-    lateinit var trackingRepository: TrackingRepository
 
     private val homeViewModel: HomeViewModel by viewModels()
 
@@ -74,9 +80,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         CellularServiceImpl(requireContext())
     }
 
-    private val sendCellLogTask = RepeatingTask(Handler(Looper.getMainLooper()), CELL_LOG_REQ_DELAY) {
-        homeViewModel.onLocationUpdate(locationService.getLastKnownLocation())
-    }
+    private val sendCellLogTask =
+        RepeatingTask(Handler(Looper.getMainLooper()), CELL_LOG_REQ_DELAY) {
+            homeViewModel.onLocationUpdate(locationService.getLastKnownLocation())
+        }
 
     private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -95,15 +102,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private val fakeLocationProvider = FakeLocationProvider()
 
-    val fakeLocationRepeatingTask = RepeatingTask(handler = Handler(Looper.getMainLooper()), LOCATION_UPDATE_DELAY) {
-        mapboxMap.locationComponent.forceLocationUpdate(
-            LocationUpdate.Builder()
-                .location(fakeLocationProvider.getNextLocation())
-                .animationDuration(LOCATION_UPDATE_DELAY - 1)
-                .build()
-        )
-    }
-    
+    val fakeLocationRepeatingTask =
+        RepeatingTask(handler = Handler(Looper.getMainLooper()), LOCATION_UPDATE_DELAY) {
+            mapboxMap.locationComponent.forceLocationUpdate(
+                LocationUpdate.Builder()
+                    .location(fakeLocationProvider.getNextLocation())
+                    .animationDuration(LOCATION_UPDATE_DELAY - 1)
+                    .build()
+            )
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -139,7 +147,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         binding.fabSaveCellLog.setOnClickListener {
             runIfLocationPermissionGranted {
-                saveCellLog()
+                val location = mapboxMap.locationComponent.lastKnownLocation!!.toLatLng()
+                saveCellLog(
+                    cellularService.getActiveCells()[0],
+                    location
+                )
+                addMarker(location, 0)
             }
         }
 
@@ -152,6 +165,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 fakeLocationRepeatingTask.start()
             }
         }
+
+        homeViewModel.showTrackingOnMap.observe(viewLifecycleOwner, { tracking ->
+            tracking?.cellLogs?.forEach {
+                addMarker(it.location, 0)
+            }
+        })
 
         homeViewModel.alert.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
@@ -180,17 +199,20 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
 
         homeViewModel.requestCellLog.observe(viewLifecycleOwner, { logLocation ->
-            homeViewModel.sendCellLog(
-                CellLogRequest(
-                    cell = cellularService.getActiveCells()[0],
-                    location = logLocation
-                )
-            )
+            saveCellLog(cellularService.getActiveCells()[0], logLocation)
+            fabCellLogPressRunnable.run()
+            addMarker(logLocation, 0)
         })
 
-        homeViewModel.cellLogFinish.observe(viewLifecycleOwner, {
-            fabCellLogPressRunnable.run()
-        })
+    }
+
+    private fun initializeMap() {
+        val selectedMarkerIconDrawable =
+            ResourcesCompat.getDrawable(this.resources, R.drawable.ic_mapbox_marker_icon_blue, null)
+        mapboxMap.style!!.addImage(
+            MARKER_ICON,
+            BitmapUtils.getBitmapFromDrawable(selectedMarkerIconDrawable)!!
+        )
     }
 
     val fabCellLogPressRunnable: Runnable = Runnable {
@@ -214,10 +236,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         super.onHiddenChanged(hidden)
     }
 
-    private fun saveCellLog() {
+    private fun saveCellLog(cell: Cell, location: LatLngEntity) {
         val cellLogRequest = CellLogRequest(
-            cell = cellularService.getActiveCells()[0],
-            location = locationService.getLastKnownLocation()!!
+            cell = cell,
+            location = location
         )
         homeViewModel.onSaveCellLogClicked(cellLogRequest)
     }
@@ -241,6 +263,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     FeatureCollection.fromFeatures(arrayOf())
                 )
             )
+            initializeMap()
         }
     }
 
@@ -278,18 +301,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    fun onLocationPermissionResult(granted: Boolean) {
-        if (granted) {
-            enableLocationComponent(mapboxMap.style!!) { this@HomeFragment.sendCellLogTask.start() }
-        } else {
-            Toast.makeText(
-                requireContext(),
-                "Location permissions were not granted.",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
     private fun runIfLocationPermissionGranted(block: () -> Unit) {
         if (checkSelfPermissionCompat(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             block()
@@ -299,7 +310,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun recenterCameraLocation() {
-        // TODO: try-catch is temporary fix, handle the case where location is not initialized properly later
         try {
             val location = with(mapboxMap.locationComponent.lastKnownLocation!!) {
                 LatLng(latitude, longitude)
@@ -332,10 +342,30 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         super.onDestroy()
     }
 
+    private fun addMarker(point: LatLngEntity, @ColorRes color: Int) {
+        val symbolManager = SymbolManager(mapView, mapboxMap, mapboxMap.style!!);
+
+        symbolManager.iconAllowOverlap = true;
+        symbolManager.textAllowOverlap = true;
+
+        val symbolOptions = SymbolOptions()
+            .withLatLng(LatLng(point.latitude, point.longitude))
+            .withIconImage(MARKER_ICON)
+            .withIconSize(1.3f)
+
+        val symbol = symbolManager.create(symbolOptions)
+        symbolManager.update(symbol)
+        symbolManager.addClickListener {
+            Toast.makeText(requireContext(), point.toString(), Toast.LENGTH_LONG).show()
+            true
+        }
+    }
+
     companion object {
         const val TAG = "HomeFragment"
         const val LOCATION_UPDATE_DELAY = 1000L
-        const val CELL_LOG_REQ_DELAY = 2000L
+        const val CELL_LOG_REQ_DELAY = 6000L
+        const val MARKER_ICON = "MARKER_ICON"
 
         fun getInstance(): HomeFragment {
             return HomeFragment()
