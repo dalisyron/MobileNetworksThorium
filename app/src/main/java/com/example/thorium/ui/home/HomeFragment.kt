@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -25,9 +24,6 @@ import com.example.thorium.service.location.LocationServiceImpl
 import com.example.thorium.util.checkSelfPermissionCompat
 import com.example.thorium.util.toPoint
 import com.example.usecase.repository.TrackingRepository
-import com.mapbox.android.core.permissions.PermissionsListener
-import com.mapbox.android.core.permissions.PermissionsManager
-import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.mapboxsdk.Mapbox
@@ -49,10 +45,11 @@ import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 
-import android.R.style
 import android.graphics.Color
-import com.example.common.entity.TrackingAdd
+import android.os.Handler
+import android.os.Looper
 import com.mapbox.mapboxsdk.style.layers.Property
+import com.example.thorium.service.location.RepeatingTask
 
 
 @AndroidEntryPoint
@@ -75,12 +72,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         CellularServiceImpl(requireContext())
     }
 
+    private val sendCellLogTask = RepeatingTask(Handler(Looper.getMainLooper()), 2000L) {
+        homeViewModel.onLocationUpdate(locationService.getLastKnownLocation())
+    }
+
     private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             permissions.forEach {
                 if (it.key == Manifest.permission.ACCESS_FINE_LOCATION) {
                     if (it.value) {
-                        enableLocationComponent(mapboxMap.style!!)
+                        enableLocationComponent(mapboxMap.style!!) { this@HomeFragment.sendCellLogTask.start() }
                     }
                 }
             }
@@ -154,6 +155,28 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
             binding.fabStartStopTracking.setImageDrawable(drawable)
         }
+
+        homeViewModel.requestCellLog.observe(viewLifecycleOwner, { logLocation ->
+            homeViewModel.sendCellLog(
+                CellLogRequest(
+                    cell = cellularService.getActiveCells()[0],
+                    location = logLocation
+                )
+            )
+        })
+
+        homeViewModel.cellLogFinish.observe(viewLifecycleOwner, {
+            fabCellLogPressRunnable.run()
+        })
+    }
+
+    val fabCellLogPressRunnable: Runnable = Runnable {
+        binding.fabSaveCellLog.isPressed = true
+        binding.fabSaveCellLog.postOnAnimationDelayed(fabCellLogUnpressRunnable, 250)
+    }
+
+    val fabCellLogUnpressRunnable: Runnable = Runnable {
+        binding.fabSaveCellLog.isPressed = false
     }
 
     override fun onStart() {
@@ -179,7 +202,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-            enableLocationComponent(it)
+            enableLocationComponent(it) { sendCellLogTask.start() }
             it.addLayer(
                 LineLayer("linelayer", "line-source").withProperties(
                     PropertyFactory.lineDasharray(arrayOf(0.01f, 2f)),
@@ -199,7 +222,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     @SuppressLint("MissingPermission")
-    private fun enableLocationComponent(loadedMapStyle: Style) {
+    private fun enableLocationComponent(loadedMapStyle: Style, callback: () -> Unit) {
         runIfLocationPermissionGranted {
 
             // Create and customize the LocationComponent's options
@@ -228,12 +251,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 // Set the LocationComponent's render mode
                 renderMode = RenderMode.COMPASS
             }
+            callback()
         }
     }
 
     fun onLocationPermissionResult(granted: Boolean) {
         if (granted) {
-            enableLocationComponent(mapboxMap.style!!)
+            enableLocationComponent(mapboxMap.style!!) { this@HomeFragment.sendCellLogTask.start() }
         } else {
             Toast.makeText(
                 requireContext(),
@@ -252,16 +276,21 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun recenterCameraLocation() {
-        val location = with(mapboxMap.locationComponent.lastKnownLocation!!) {
-            LatLng(latitude, longitude)
+        // TODO: try-catch is temporary fix, handle the case where location is not initialized properly later
+        try {
+            val location = with(mapboxMap.locationComponent.lastKnownLocation!!) {
+                LatLng(latitude, longitude)
+            }
+
+            val position = CameraPosition.Builder()
+                .target(location)
+                .zoom(14.0)
+                .build()
+
+            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 500)
+        } catch (e: Exception) {
+
         }
-
-        val position = CameraPosition.Builder()
-            .target(location)
-            .zoom(14.0)
-            .build()
-
-        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 500)
     }
 
     private fun displayTrackingOnMap(tracking: Tracking) {
@@ -273,6 +302,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onDestroy() {
+        sendCellLogTask.stop()
+        super.onDestroy()
     }
 
     companion object {

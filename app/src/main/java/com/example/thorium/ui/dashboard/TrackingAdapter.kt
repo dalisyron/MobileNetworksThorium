@@ -63,12 +63,12 @@ class TrackingViewHolder(
 
             tvStartLocation.text = itemView.context.getString(
                 R.string.start_location_place_holder,
-                tracking.startLocation
+                tracking.startLocation.toFormattedString()
             )
 
             tvStopLocation.text = itemView.context.getString(
                 R.string.stop_location_place_holder,
-                tracking.endLocation
+                tracking.endLocation?.toFormattedString() ?: ""
             )
         }
     }

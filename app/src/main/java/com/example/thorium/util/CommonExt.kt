@@ -58,6 +58,6 @@ fun Context.getFormattedDate(timeStamp: Long): String {
             zoneId
         )
         .format(
-            DateTimeFormatter.ofPattern( "yyyy.MM.dd.HH.mm.ss" )
+            DateTimeFormatter.ofPattern( "yyyy.MM.dd - HH:mm:ss" )
         )
 }

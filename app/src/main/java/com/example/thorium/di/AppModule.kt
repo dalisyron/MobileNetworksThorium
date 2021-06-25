@@ -30,7 +30,7 @@ object AppModule {
         val db = Room.databaseBuilder(
             context,
             MainDatabase::class.java, "main-db"
-        ).addTypeConverter(MainTypeConverters()).build()
+        ).addTypeConverter(MainTypeConverters()).allowMainThreadQueries().build()
         return db
     }
 

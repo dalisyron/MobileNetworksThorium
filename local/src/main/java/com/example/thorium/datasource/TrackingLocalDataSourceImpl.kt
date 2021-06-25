@@ -11,8 +11,6 @@ import com.example.thorium.dto.TrackingDto
 import com.example.thorium.mapper.toCellLog
 import com.example.thorium.mapper.toCellLogDto
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.lang.IllegalStateException
 import javax.inject.Inject
@@ -74,8 +72,11 @@ class TrackingLocalDataSourceImpl @Inject constructor(
 
     override suspend fun getActiveTracking(): Tracking = withContext(Dispatchers.IO) {
         val activeTrackings = trackingDao.getActiveTrackings()
-        check(activeTrackings.size == 1) {
+        check(activeTrackings.size <= 1) {
             "Internal Error: More than one active trackings!"
+        }
+        check(activeTrackings.size >= 1) {
+            "No active tracking found"
         }
 
         val tracking = activeTrackings[0]
@@ -94,7 +95,7 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         check(activeTrackings.size == 1)
         val tracking = activeTrackings[0]
 
-        trackingDao.stopActiveTracking()
+        trackingDao.stopActiveTrackings()
         trackingDao.setStopLocationForTracking(tracking.id, stopLocation)
     }
 
@@ -108,10 +109,6 @@ class TrackingLocalDataSourceImpl @Inject constructor(
                 endLocation = it.endLocation
             )
         }
-    }
-
-    override fun isThereActiveTrackingFlow(): Flow<Boolean> {
-        return trackingDao.getActiveTrackingsFlow().map { it.any { tracking -> tracking.isActive } }
     }
 
     override suspend fun getTrackingById(id: Int): Tracking = withContext(Dispatchers.IO) {
