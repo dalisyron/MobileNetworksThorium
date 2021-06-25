@@ -1,12 +1,11 @@
 package com.example.data.repository
 
 import com.example.common.entity.CellLog
-import com.example.common.entity.LatLng
+import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import com.example.data.datasource.TrackingLocalDataSource
 import com.example.usecase.repository.TrackingRepository
-import kotlinx.coroutines.flow.Flow
 
 class TrackingRepositoryImpl(
     private val trackingLocalDataSource: TrackingLocalDataSource
@@ -30,7 +29,7 @@ class TrackingRepositoryImpl(
         return trackingLocalDataSource.getActiveTracking()
     }
 
-    override suspend fun stopActiveTracking(stopLocation: LatLng) {
+    override suspend fun stopActiveTracking(stopLocation: LatLngEntity) {
         trackingLocalDataSource.stopActiveTracking(stopLocation)
     }
 

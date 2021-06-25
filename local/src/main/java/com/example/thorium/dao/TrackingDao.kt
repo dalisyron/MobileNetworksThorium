@@ -1,12 +1,10 @@
 package com.example.thorium.dao
 
-import android.location.Location
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.common.entity.LatLng
+import com.example.common.entity.LatLngEntity
 import com.example.thorium.dto.TrackingDto
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TrackingDao {
@@ -32,7 +30,7 @@ interface TrackingDao {
     suspend fun getTrackingById(id: Int): List<TrackingDto>
 
     @Query("update tracking set end_location=:stopLocation where id=:id")
-    suspend fun setStopLocationForTracking(id: Int, stopLocation: LatLng)
+    suspend fun setStopLocationForTracking(id: Int, stopLocation: LatLngEntity)
 
     @Query("update tracking set is_active=0 where is_active=1")
     fun stopActiveTrackingsBlocking()

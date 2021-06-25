@@ -2,7 +2,7 @@ package com.example.thorium.ui.home
 
 import androidx.lifecycle.*
 import com.example.common.entity.CellLogRequest
-import com.example.common.entity.LatLng
+import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import com.example.thorium.util.SingleLiveEvent
@@ -18,7 +18,8 @@ class HomeViewModel @Inject constructor(
     private val saveCellLogUseCase: SaveCellLogUseCase,
     private val stopActiveTrackingUseCase: StopActiveTrackingUseCase,
     private val isThereActiveTrackingUseCase: IsThereActiveTrackingUseCase,
-    private val getSelectedForDisplayTracking: GetSelectedForDisplayTracking
+    private val getSelectedForDisplayTracking: GetSelectedForDisplayTracking,
+    private val loadTrackingOnMapUseCase: LoadTrackingOnMapUseCase
 ) : ViewModel() {
 
     private val _alert: SingleLiveEvent<String> = SingleLiveEvent()
@@ -30,16 +31,27 @@ class HomeViewModel @Inject constructor(
     private val _isThereActiveTracking: MutableLiveData<Boolean> = MutableLiveData()
     val isThereActiveTracking: LiveData<Boolean> = _isThereActiveTracking
 
-    private val _requestCellLog: SingleLiveEvent<LatLng> = SingleLiveEvent()
-    val requestCellLog: LiveData<LatLng> = _requestCellLog
+    private val _requestCellLog: SingleLiveEvent<LatLngEntity> = SingleLiveEvent()
+    val requestCellLog: LiveData<LatLngEntity> = _requestCellLog
 
     private val _cellLogFinish: SingleLiveEvent<Unit> = SingleLiveEvent()
     val cellLogFinish = _cellLogFinish
 
+    private val _showTrackingOnMap: MutableLiveData<Tracking> = MutableLiveData()
+    val showTrackingOnMap: LiveData<Tracking> = _showTrackingOnMap
+
     fun initialize() {
         viewModelScope.launch {
-            updateDisplayedTracking()
+            val tracking = getSelectedForDisplayTracking()
+            if (loadTrackingOnMapUseCase()) {
+                showMarkers(tracking)
+            }
+            _displayedTracking.value = tracking
         }
+    }
+
+    private fun showMarkers(tracking: Tracking?) {
+        _showTrackingOnMap.value = tracking
     }
 
     private suspend fun runUseCase(successMessage: String, useCase: suspend () -> Unit) {
@@ -58,7 +70,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun onStopTrackingClicked(stoppingLocation: LatLng) {
+    private suspend fun onStopTrackingClicked(stoppingLocation: LatLngEntity) {
         runUseCase(successMessage = "Successfully stopped active tracking") {
             stopActiveTrackingUseCase(stoppingLocation)
             updateDisplayedTracking()
@@ -67,10 +79,8 @@ class HomeViewModel @Inject constructor(
 
     fun onSaveCellLogClicked(cellLogRequest: CellLogRequest) {
         viewModelScope.launch {
-            runUseCase(successMessage = "Successfully saved cell log") {
-                saveCellLogUseCase(cellLogRequest)
-                updateDisplayedTracking()
-            }
+            saveCellLogUseCase(cellLogRequest)
+            updateDisplayedTracking()
         }
     }
 
@@ -82,7 +92,7 @@ class HomeViewModel @Inject constructor(
         _isThereActiveTracking.value = isThereActiveTrackingUseCase()
     }
 
-    fun onStartStopTrackingClicked(currentLocation: LatLng) {
+    fun onStartStopTrackingClicked(currentLocation: LatLngEntity) {
         viewModelScope.launch {
             val isActive = isThereActiveTrackingUseCase()
             if (isActive) {
@@ -108,7 +118,7 @@ class HomeViewModel @Inject constructor(
     }
 
     // Go back and forth between activity and viewmodel since cell-log retrieval is computationally intensive
-    fun onLocationUpdate(lastLocation: LatLng?) {
+    fun onLocationUpdate(lastLocation: LatLngEntity?) {
         viewModelScope.launch {
             if (lastLocation != null) {
                 val isActive = isThereActiveTrackingUseCase()

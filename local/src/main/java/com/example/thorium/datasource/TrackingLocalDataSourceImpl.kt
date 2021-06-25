@@ -1,7 +1,7 @@
 package com.example.thorium.datasource
 
 import com.example.common.entity.CellLog
-import com.example.common.entity.LatLng
+import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import com.example.data.datasource.TrackingLocalDataSource
@@ -90,7 +90,7 @@ class TrackingLocalDataSourceImpl @Inject constructor(
         )
     }
 
-    override suspend fun stopActiveTracking(stopLocation: LatLng) = withContext(Dispatchers.IO) {
+    override suspend fun stopActiveTracking(stopLocation: LatLngEntity) = withContext(Dispatchers.IO) {
         val activeTrackings = trackingDao.getActiveTrackings()
         check(activeTrackings.size == 1)
         val tracking = activeTrackings[0]

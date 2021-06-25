@@ -1,8 +1,8 @@
 package com.example.thorium.util
 
 import android.location.Location
-import com.example.common.entity.LatLng
+import com.example.common.entity.LatLngEntity
 
-fun Location.toLatLng(): LatLng {
-    return LatLng(latitude, longitude)
+fun Location.toLatLng(): LatLngEntity {
+    return LatLngEntity(latitude, longitude)
 }
