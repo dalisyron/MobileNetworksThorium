@@ -6,6 +6,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.example.common.entity.CellGsm
 import com.example.common.entity.CellLog
@@ -20,6 +21,7 @@ import com.example.thorium.R
 import com.example.thorium.app.ThoriumApp
 import com.example.thorium.util.ColorUtils
 import com.example.thorium.util.SingleLiveEvent
+import com.example.thorium.util.distance
 import com.example.usecase.interactor.GetGenerationsColorsUseCase
 import com.example.usecase.interactor.GetSelectedForDisplayTracking
 import com.example.usecase.interactor.IsThereActiveTrackingUseCase
@@ -27,6 +29,7 @@ import com.example.usecase.interactor.LoadTrackingOnMapUseCase
 import com.example.usecase.interactor.SaveCellLogUseCase
 import com.example.usecase.interactor.StartNewTrackingUseCase
 import com.example.usecase.interactor.StopActiveTrackingUseCase
+import com.mapbox.geojson.LineString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.lang.IllegalArgumentException
 import java.util.*
@@ -45,6 +48,9 @@ class HomeViewModel @Inject constructor(
     private val loadTrackingOnMapUseCase: LoadTrackingOnMapUseCase,
     private val getGenerationsColorsUseCase: GetGenerationsColorsUseCase
 ) : ViewModel() {
+
+    private val _displayCellLogDetail: MutableLiveData<CellLog> = MutableLiveData()
+    val displayCellLogDetail: LiveData<CellLog> = _displayCellLogDetail
 
     private val _alert: SingleLiveEvent<String> = SingleLiveEvent()
     val alert: LiveData<String> = _alert
@@ -102,6 +108,7 @@ class HomeViewModel @Inject constructor(
         runUseCase(successMessage = "Successfully stopped active tracking") {
             stopActiveTrackingUseCase(stoppingLocation)
             updateDisplayedTracking()
+            _clearMarkers.call()
         }
     }
 
@@ -257,5 +264,17 @@ class HomeViewModel @Inject constructor(
 
     private fun clearColorMap() {
         colorMap.clear()
+    }
+
+    fun onMapClicked(latLngEntity: LatLngEntity) {
+        viewModelScope.launch {
+            val tracking = getSelectedForDisplayTracking()
+            val matchingCellLog = tracking?.cellLogs?.find {
+                distance(it.location.latitude, latLngEntity.latitude, it.location.longitude, latLngEntity.longitude) < 10
+            }
+            matchingCellLog?.let {
+                _displayCellLogDetail.value = it
+            }
+        }
     }
 }

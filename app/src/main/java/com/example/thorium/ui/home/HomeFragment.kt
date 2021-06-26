@@ -70,24 +70,17 @@ import com.mapbox.mapboxsdk.annotations.IconFactory
 
 import androidx.core.graphics.drawable.DrawableCompat
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.VectorDrawable
-
-import androidx.annotation.ColorInt
-
-import androidx.annotation.DrawableRes
-
-import androidx.annotation.NonNull
-import com.mapbox.mapboxsdk.annotations.Icon
-import com.mapbox.mapboxsdk.annotations.MarkerOptions
-import java.util.HashMap
+import androidx.core.graphics.drawable.toBitmap
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.example.thorium.util.toLatLngEntity
+import com.google.android.material.bottomsheet.BottomSheetDialog
 
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedListener {
+
+    private lateinit var symbolManager: SymbolManager
 
     private var _binding: FragmentHomeBinding? = null
 
@@ -122,6 +115,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
                 }
             }
         }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -241,13 +238,21 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         })
 
         homeViewModel.addMarker.observe(viewLifecycleOwner, {
-            addMarker(it.first.location, it.second)
+            addMarker(it.first, it.second)
         })
 
         homeViewModel.clearMarkers.observe(viewLifecycleOwner, {
             if (_mapboxMap != null) {
+                displayTrackingOnMap(null)
+                symbolManager.deleteAll()
                 mapboxMap.clear()
             }
+        })
+
+        homeViewModel.displayCellLogDetail.observe(viewLifecycleOwner, {
+            val bottomSheetDialog = BottomSheetDialog(requireContext())
+            bottomSheetDialog.setContentView(R.layout.bottom_sheet_cell_log_detail)
+            bottomSheetDialog.show()
         })
     }
 
@@ -302,15 +307,25 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
                     PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
                 )
             )
-            mapboxMap.style!!.addSource(
+            it.addSource(
                 GeoJsonSource(
                     "line-source",
                     FeatureCollection.fromFeatures(arrayOf())
                 )
             )
+
+            symbolManager = SymbolManager(mapView, mapboxMap, mapboxMap.style!!)
+            symbolManager.iconAllowOverlap = true
+            symbolManager.iconIgnorePlacement = true
+            symbolManager.addClickListener {
+                if (it.iconImage.startsWith(MARKER_ICON)) {
+                    homeViewModel.onMapClicked(it.latLng.toLatLngEntity())
+                }
+                true
+            }
+
             initializeMap()
         }
-
     }
 
     @SuppressLint("MissingPermission")
@@ -372,8 +387,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         }
     }
 
-    private fun displayTrackingOnMap(tracking: Tracking) {
-        val coordinates = tracking.cellLogs.map { it.location.toPoint() }
+    private fun displayTrackingOnMap(tracking: Tracking?) {
+        val coordinates = (tracking?.cellLogs ?: listOf()).map { it.location.toPoint() }
         val lineString = LineString.fromLngLats(coordinates)
         mapboxMap.style!!.getSourceAs<GeoJsonSource>("line-source")!!.setGeoJson(lineString)
     }
@@ -389,15 +404,22 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
     }
 
     // @param color is android color type
-    private fun addMarker(point: LatLngEntity, color: Int) {
-        val selectedMarkerIconDrawable =
-            ResourcesCompat.getDrawable(this.resources, R.drawable.ic_mapbox_marker_icon_blue, null) as VectorDrawable
+    private fun addMarker(log: CellLog, color: Int) {
+        val hexColor = java.lang.String.format("#%06X", 0xFFFFFF and color).toLowerCase()
 
-        mapboxMap.addMarker(
-            MarkerOptions()
-                .position(LatLng(point.latitude, point.longitude))
-                .icon(drawableToIcon(requireContext(), selectedMarkerIconDrawable, color))
-        )
+        val vectorDrawable =
+            VectorDrawableCompat.create(resources, R.drawable.ic_mapbox_marker_icon_blue, null)
+        val wrappedDrawable = DrawableCompat.wrap(vectorDrawable as Drawable)
+        DrawableCompat.setTint(wrappedDrawable, color)
+        mapboxMap.style!!.addImage(MARKER_ICON + hexColor, vectorDrawable.toBitmap(), false)
+
+        val symbolOptions: SymbolOptions = SymbolOptions()
+            .withLatLng(log.location.toLatLng())
+            .withIconImage(MARKER_ICON + hexColor)
+            .withIconSize(1.3f)
+
+        val symbol = symbolManager.create(symbolOptions)
+        symbolManager.update(symbol)
     }
 
     companion object {
@@ -410,17 +432,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
             return HomeFragment()
         }
 
-        fun drawableToIcon(context: Context, vectorDrawable: VectorDrawable, @ColorInt colorRes: Int): Icon? {
-            val bitmap = Bitmap.createBitmap(
-                vectorDrawable.intrinsicWidth,
-                vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888
-            )
-            val canvas = Canvas(bitmap)
-            vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
-            DrawableCompat.setTint(vectorDrawable, colorRes)
-            vectorDrawable.draw(canvas)
-            return IconFactory.getInstance(context).fromBitmap(bitmap)
-        }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
