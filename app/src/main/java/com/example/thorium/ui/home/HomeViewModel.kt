@@ -153,6 +153,11 @@ class HomeViewModel @Inject constructor(
                     _addMarker.value = Pair(cellLog, ColorUtils.getColor(ColorUtils.mapFromIntToRes(color)))
                 }
             }
+            extractString(R.string.mode_strength) -> {
+                val percentage = cellLog.cell.getStrengthPercentage()
+                val color = ColorUtils.getRegToGreenDegreeColor(percentage)
+                _addMarker.value = Pair(cellLog, color)
+            }
         }
     }
 

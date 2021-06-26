@@ -1,5 +1,6 @@
 package com.example.thorium.util
 
+import android.graphics.Color
 import android.util.Half
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
@@ -53,6 +54,14 @@ class ColorUtils {
 
         fun getColor(@ColorRes idRes: Int): Int {
             return ContextCompat.getColor(ThoriumApp.applicationContext!!, idRes)
+        }
+
+        fun getRegToGreenDegreeColor(degree: Int): Int {
+            check(degree in 0..100)
+
+            val (G, R, B) = Triple((255f * degree) / 100f, (255f * (100f - degree)) / 100f, 0)
+
+            return Color.rgb(R.toInt(), G.toInt(), B)
         }
     }
 }

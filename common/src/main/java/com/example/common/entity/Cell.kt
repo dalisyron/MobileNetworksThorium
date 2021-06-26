@@ -1,5 +1,7 @@
 package com.example.common.entity
 
+import kotlin.math.abs
+
 interface LocationId {
     val locationId: Long
 }
@@ -15,7 +17,17 @@ sealed class Cell(
     val id: Int,
     val strength: Int,
     val registered: Boolean
-) : LocationId, CellCode
+) : LocationId, CellCode {
+    // percent = 100 x (1 – (PdBm_max – PdBm) / (PdBm_max – PdBm_min))
+    fun getStrengthPercentage(): Int {
+        return if (strength <= -120)
+            0
+        else if (strength >= -24)
+            100
+        else
+            (100 * (abs(strength + 120) / 144f)).toInt()
+    }
+}
 
 class CellWcdma(
     mcc: Int,
