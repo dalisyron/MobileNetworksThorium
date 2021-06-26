@@ -1,5 +1,13 @@
 package com.example.common.entity
 
+interface LocationId {
+    val locationId: Long
+}
+
+interface CellCode {
+    val cellCode: Long
+}
+
 sealed class Cell(
     val mcc: Int,
     val mnc: Int,
@@ -7,7 +15,7 @@ sealed class Cell(
     val id: Int,
     val strength: Int,
     val registered: Boolean
-)
+) : LocationId, CellCode
 
 class CellWcdma(
     mcc: Int,
@@ -24,6 +32,9 @@ class CellWcdma(
     strength = strength,
     registered = registered
 ) {
+    override val locationId: Long
+        = lac.toLong()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CellWcdma) return false
@@ -42,6 +53,9 @@ class CellWcdma(
         result = 31 * result + psc
         return result
     }
+
+    override val cellCode: Long
+        = psc.toLong()
 }
 
 class CellLte(
@@ -59,6 +73,9 @@ class CellLte(
     strength = strength,
     registered = registered
 ) {
+    override val locationId: Long
+        = tac.toLong()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CellLte) return false
@@ -77,6 +94,9 @@ class CellLte(
         result = 31 * result + pci
         return result
     }
+
+    override val cellCode: Long
+        = pci.toLong()
 }
 
 class CellGsm(
@@ -94,6 +114,9 @@ class CellGsm(
     strength = strength,
     registered = registered
 ) {
+    override val locationId: Long
+        = lac.toLong()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CellGsm) return false
@@ -112,4 +135,7 @@ class CellGsm(
         result = 31 * result + bsic
         return result
     }
+
+    override val cellCode: Long
+        = bsic.toLong()
 }

@@ -8,7 +8,7 @@
     </array>
 
     <string name="mode_generation">Generation</string>
-    <string name="mode_location">Location</string>
-    <string name="mode_code">Code</string>
+    <string name="mode_location">Location (LAC/TAC)</string>
+    <string name="mode_code">Code (BSIC, PSC, PCI)</string>
     <string name="mode_strength">Strength</string>
 </resources>

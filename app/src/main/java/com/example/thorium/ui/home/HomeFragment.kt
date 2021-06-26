@@ -83,6 +83,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.NonNull
 import com.mapbox.mapboxsdk.annotations.Icon
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
+import java.util.HashMap
 
 
 @AndroidEntryPoint
@@ -127,8 +128,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
     private val binding get() = _binding!!
 
     private val fakeLocationProvider = FakeLocationProvider()
-
-    private lateinit var trackingMode: TrackingMode
 
     val fakeLocationRepeatingTask =
         RepeatingTask(handler = Handler(Looper.getMainLooper()), LOCATION_UPDATE_DELAY) {
@@ -210,24 +209,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
     }
 
     private fun initObservers() {
-        homeViewModel.showTrackingOnMap.observe(viewLifecycleOwner, { trackingModePair ->
-            val (tracking, mode) = trackingModePair
-
-            tracking.cellLogs.forEach {
-                addMarkerByMode(it, mode)
-            }
-        })
-
-        homeViewModel.trackingMode.observe(viewLifecycleOwner, { trackingMode ->
-            this.trackingMode = trackingMode
-            when (trackingMode) {
-                is TrackingMode.Code -> TODO()
-                is TrackingMode.Generation -> setupGenerationMode(trackingMode.generationsColorsData)
-                is TrackingMode.Location -> TODO()
-                is TrackingMode.Strength -> TODO()
-            }
-        })
-
         homeViewModel.alert.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
         }
@@ -260,7 +241,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         })
 
         homeViewModel.addMarker.observe(viewLifecycleOwner, {
-            addMarkerByMode(it.first, it.second)
+            addMarker(it.first.location, it.second)
         })
 
         homeViewModel.clearMarkers.observe(viewLifecycleOwner, {
@@ -268,29 +249,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
                 mapboxMap.clear()
             }
         })
-    }
-
-    private fun addMarkerByMode(cellLog: CellLog, mode: TrackingMode) {
-        when (mode) {
-            is TrackingMode.Generation -> {
-                when (cellLog.cell) {
-                    is CellLte -> {
-                        addMarker(cellLog.location, mode.generationsColorsData.g4Color)
-                    }
-                    is CellWcdma -> {
-                        addMarker(cellLog.location, mode.generationsColorsData.g3Color)
-                    }
-                    is CellGsm -> {
-                        addMarker(cellLog.location, mode.generationsColorsData.g2Color)
-                    }
-                    else -> throw IllegalArgumentException()
-                }
-            }
-        }
-    }
-
-    private fun setupGenerationMode(generationsColorsData: GenerationsColorsData) {
-
     }
 
     private fun initializeMap() {
@@ -430,16 +388,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         super.onDestroy()
     }
 
-    private fun addMarker(point: LatLngEntity, @ColorRes color: Int) {
+    // @param color is android color type
+    private fun addMarker(point: LatLngEntity, color: Int) {
         val selectedMarkerIconDrawable =
             ResourcesCompat.getDrawable(this.resources, R.drawable.ic_mapbox_marker_icon_blue, null) as VectorDrawable
-
-        val colorVar = ContextCompat.getColor(requireContext(), ColorUtils.mapFromIntToRes(color))
 
         mapboxMap.addMarker(
             MarkerOptions()
                 .position(LatLng(point.latitude, point.longitude))
-                .icon(drawableToIcon(requireContext(), selectedMarkerIconDrawable, colorVar))
+                .icon(drawableToIcon(requireContext(), selectedMarkerIconDrawable, color))
         )
     }
 

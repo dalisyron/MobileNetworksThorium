@@ -1,6 +1,10 @@
 package com.example.thorium.util
 
+import android.util.Half
+import androidx.annotation.ColorRes
+import androidx.core.content.ContextCompat
 import com.example.thorium.R
+import com.example.thorium.app.ThoriumApp
 import com.example.thorium.ui.customView.colorSpinner.ColorSpinnerItem
 
 class ColorUtils {
@@ -34,5 +38,21 @@ class ColorUtils {
             ColorSpinnerItem.mapFrom(R.color.green),
             ColorSpinnerItem.mapFrom(R.color.magenta),
         )
+
+        fun red(color: Long): Float {
+            return if (color and 0x3fL == 0L) (color shr 48 and 0xff) / 255.0f else (color shr 48 and 0xffff).toFloat()
+        }
+
+        fun green(color: Long): Float {
+            return if (color and 0x3fL == 0L) (color shr 40 and 0xff) / 255.0f else (color shr 32 and 0xffff).toFloat()
+        }
+
+        fun blue(color: Long): Float {
+            return if (color and 0x3fL == 0L) (color shr 32 and 0xff) / 255.0f else (color shr 16 and 0xffff).toFloat()
+        }
+
+        fun getColor(@ColorRes idRes: Int): Int {
+            return ContextCompat.getColor(ThoriumApp.applicationContext!!, idRes)
+        }
     }
 }

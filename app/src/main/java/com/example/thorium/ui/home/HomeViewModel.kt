@@ -1,19 +1,24 @@
 package com.example.thorium.ui.home
 
+import android.graphics.Color
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.common.entity.CellGsm
 import com.example.common.entity.CellLog
 import com.example.common.entity.CellLogRequest
+import com.example.common.entity.CellLte
+import com.example.common.entity.CellWcdma
 import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.common.entity.TrackingAdd
 import com.example.thorium.R
 import com.example.thorium.app.ThoriumApp
+import com.example.thorium.util.ColorUtils
 import com.example.thorium.util.SingleLiveEvent
 import com.example.usecase.interactor.GetGenerationsColorsUseCase
 import com.example.usecase.interactor.GetSelectedForDisplayTracking
@@ -23,7 +28,11 @@ import com.example.usecase.interactor.SaveCellLogUseCase
 import com.example.usecase.interactor.StartNewTrackingUseCase
 import com.example.usecase.interactor.StopActiveTrackingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.lang.IllegalArgumentException
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.HashMap
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -49,18 +58,7 @@ class HomeViewModel @Inject constructor(
     private val _requestCellLog: SingleLiveEvent<LatLngEntity> = SingleLiveEvent()
     val requestCellLog: LiveData<LatLngEntity> = _requestCellLog
 
-    private val _cellLogFinish: SingleLiveEvent<Unit> = SingleLiveEvent()
-    val cellLogFinish = _cellLogFinish
-
-
-    private val _trackingMode: MutableLiveData<TrackingMode> = MutableLiveData()
-    val trackingMode: LiveData<TrackingMode> = _trackingMode
-
-    private val _showTrackingOnMap: MutableLiveData<Pair<Tracking, TrackingMode>> =
-        MutableLiveData()
-    val showTrackingOnMap: LiveData<Pair<Tracking, TrackingMode>> = _showTrackingOnMap
-
-    private val _addMarker: MutableLiveData<Pair<CellLog, TrackingMode>> = MutableLiveData()
+    private val _addMarker: MutableLiveData<Pair<CellLog, Int>> = MutableLiveData()
     val addMarker = _addMarker
 
     private val _clearMarkers: SingleLiveEvent<Unit> = SingleLiveEvent()
@@ -68,28 +66,20 @@ class HomeViewModel @Inject constructor(
 
     var trackingModeString: String? = null
 
+    private val rnd = Random(1000000007L)
+
+    private val colorMap: HashMap<Long, Int> = hashMapOf()
+
     fun initialize() {
         viewModelScope.launch {
             val tracking = getSelectedForDisplayTracking()
-            if (loadTrackingOnMapUseCase()) {
-                showMarkers(tracking!!, trackingMode.value!!)
-            }
-            _displayedTracking.value = tracking
-        }
-        viewModelScope.launch {
-            _clearMarkers.call()
-            val tracking = getSelectedForDisplayTracking()
-            tracking?.let {
-                _showTrackingOnMap.value = Pair(it, _trackingMode.value!!)
+            if (tracking != null) {
+                _displayedTracking.value = tracking
             }
         }
         trackingModeString?.let {
             onModeChange(it)
         }
-    }
-
-    private fun showMarkers(tracking: Tracking, trackingMode: TrackingMode) {
-        _showTrackingOnMap.value = Pair(tracking, trackingMode)
     }
 
     private suspend fun runUseCase(successMessage: String, useCase: suspend () -> Unit) {
@@ -124,7 +114,60 @@ class HomeViewModel @Inject constructor(
             }
             val cellLog = saveCellLogUseCase(cellLogRequest)
             updateDisplayedTracking()
-            _addMarker.value = Pair(cellLog, trackingMode.value!!)
+            addColorForCellLog(cellLog)
+            addMarkerForCellLog(cellLog)
+        }
+    }
+
+    private fun addMarkersForTracking(tracking: Tracking) {
+        tracking.cellLogs.forEach {
+            addMarkerForCellLog(it)
+        }
+    }
+
+    private fun addMarkerForCellLog(cellLog: CellLog) {
+        when (trackingModeString) {
+            extractString(R.string.mode_location) -> {
+                val key = cellLog.cell.locationId
+                if (!colorMap.containsKey(key)) {
+                    addToColorMap(key)
+                }
+                _addMarker.value = Pair(cellLog, colorMap[cellLog.cell.locationId]!!)
+            }
+            extractString(R.string.mode_code) -> {
+                val key = cellLog.cell.cellCode
+                if (!colorMap.containsKey(key)) {
+                    addToColorMap(key)
+                }
+                _addMarker.value = Pair(cellLog, colorMap[cellLog.cell.cellCode]!!)
+            }
+            extractString(R.string.mode_generation) -> {
+                viewModelScope.launch {
+                    val colorData = getGenerationsColorsUseCase()
+                    val color = when(cellLog.cell) {
+                        is CellLte -> colorData.g4Color
+                        is CellWcdma -> colorData.g3Color
+                        is CellGsm -> colorData.g2Color
+                        else -> throw IllegalArgumentException()
+                    }
+                    _addMarker.value = Pair(cellLog, ColorUtils.getColor(ColorUtils.mapFromIntToRes(color)))
+                }
+            }
+        }
+    }
+
+    private fun addColorForCellLog(cellLog: CellLog) {
+        when (trackingModeString) {
+            extractString(R.string.mode_location) -> {
+                val locationId = cellLog.cell.locationId
+                addToColorMap(locationId)
+            }
+            extractString(R.string.mode_code) -> {
+                val cellCode = cellLog.cell.cellCode
+                addToColorMap(cellCode)
+            }
+            else -> {
+            }
         }
     }
 
@@ -167,33 +210,47 @@ class HomeViewModel @Inject constructor(
 
     fun onModeChange(mode: String) {
         trackingModeString = mode
-        when (mode) {
-            extractString(R.string.mode_generation) -> {
-                viewModelScope.launch {
-                    val generationsColors = getGenerationsColorsUseCase()
-                    _trackingMode.value = TrackingMode.Generation(
-                        generationsColors
-                    )
-                }
+        clearColorMap()
+        _clearMarkers.call()
+
+        viewModelScope.launch {
+            getSelectedForDisplayTracking()?.let {
+                createColorMap(it)
+                addMarkersForTracking(it)
             }
-            extractString(R.string.mode_location) -> TrackingMode.Location
-            extractString(R.string.mode_strength) -> TrackingMode.Strength
-            extractString(R.string.mode_code) -> TrackingMode.Code
-            else -> TrackingMode.Location
+        }
+    }
+
+    private fun createColorMap(tracking: Tracking) {
+        tracking.cellLogs.forEach {
+            addColorForCellLog(it)
+        }
+    }
+
+    private fun addToColorMap(key: Long) {
+        if (colorMap.containsKey(key)) return
+
+        for (i in 1..1000) {
+            val (r, g, b) = Triple(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
+            val isNewColor = colorMap.keys.none {
+                val itRed: Int = ColorUtils.red(it).toInt()
+                val itGreen: Int = ColorUtils.green(it).toInt()
+                val itBlue: Int = ColorUtils.blue(it).toInt()
+                val diff = abs(itRed - r) + abs(itGreen - g) + abs(itBlue - b)
+                diff <= 30
+            }
+            if (isNewColor || i == 999) {
+                colorMap[key] = Color.rgb(r, g, b)
+                break
+            }
         }
     }
 
     private fun extractString(@StringRes resId: Int): String {
         return ThoriumApp.applicationContext?.resources?.getString(resId)!!
     }
-}
 
-sealed class TrackingMode {
-    data class Generation(
-        val generationsColorsData: GenerationsColorsData
-    ) : TrackingMode()
-
-    object Code : TrackingMode()
-    object Location : TrackingMode()
-    object Strength : TrackingMode()
+    private fun clearColorMap() {
+        colorMap.clear()
+    }
 }
