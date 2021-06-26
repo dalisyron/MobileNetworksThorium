@@ -1,6 +1,5 @@
 package com.example.thorium.util
 
-import android.content.Context
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -49,7 +48,7 @@ fun AppCompatActivity.hideFragmentCommit(tag: String) {
     }
 }
 
-fun Context.getFormattedDate(timeStamp: Long): String {
+fun getFormattedDate(timeStamp: Long): String {
     val zoneId = ZoneId.systemDefault()
 
     return ZonedDateTime

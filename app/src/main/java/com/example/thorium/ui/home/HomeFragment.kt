@@ -73,6 +73,7 @@ import androidx.core.graphics.drawable.DrawableCompat
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.example.thorium.ui.detail.CellLogDetailBottomSheetDialog
 import com.example.thorium.util.toLatLngEntity
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -250,8 +251,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         })
 
         homeViewModel.displayCellLogDetail.observe(viewLifecycleOwner, {
-            val bottomSheetDialog = BottomSheetDialog(requireContext())
-            bottomSheetDialog.setContentView(R.layout.bottom_sheet_cell_log_detail)
+            val bottomSheetDialog = CellLogDetailBottomSheetDialog.getInstance(requireContext(), it)
             bottomSheetDialog.show()
         })
     }

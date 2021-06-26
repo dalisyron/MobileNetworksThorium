@@ -9,8 +9,6 @@ import com.example.common.entity.Tracking
 import com.example.thorium.R
 import com.example.thorium.databinding.ItemTrackingBinding
 import com.example.thorium.util.getFormattedDate
-import java.text.SimpleDateFormat
-import java.util.*
 
 typealias OnTrackingItemClicked = (Tracking) -> Unit
 
@@ -56,7 +54,7 @@ class TrackingViewHolder(
         this.tracking = tracking
         binding.apply {
 
-            tvTrackingDate.text = itemView.context.getFormattedDate(tracking.dateCreated)
+            tvTrackingDate.text = getFormattedDate(tracking.dateCreated)
 
             tvLogCount.text =
                 itemView.context.getString(R.string.log_count_place_holder, tracking.cellLogs.size)
