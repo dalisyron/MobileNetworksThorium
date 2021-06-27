@@ -7,8 +7,30 @@
         <item>@string/mode_strength</item>
     </array>
 
+    <string-array name="times">
+        <item>@string/time_5s</item>
+        <item>@string/time_10s</item>
+        <item>@string/time_30s</item>
+        <item>@string/time_1m</item>
+        <item>@string/time_2m</item>
+        <item>@string/time_5m</item>
+        <item>@string/time_10m</item>
+        <item>@string/time_30m</item>
+        <item>@string/time_1h</item>
+    </string-array>
+
     <string name="mode_generation">Generation</string>
     <string name="mode_location">Location (LAC/TAC)</string>
     <string name="mode_code">Code (BSIC, PSC, PCI)</string>
     <string name="mode_strength">Strength</string>
+
+    <string name="time_5s">5 sec</string>
+    <string name="time_10s">10 sec</string>
+    <string name="time_30s">30 sec</string>
+    <string name="time_1m">1 min</string>
+    <string name="time_2m">2 min</string>
+    <string name="time_5m">5 min</string>
+    <string name="time_10m">10 min</string>
+    <string name="time_30m">30 min</string>
+    <string name="time_1h">1 hour</string>
 </resources>

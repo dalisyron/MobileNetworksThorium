@@ -1,16 +1,19 @@
 package com.example.thorium.ui.main
 
 import androidx.annotation.IdRes
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.viewModelScope
 import com.example.common.entity.AppState
 import com.example.thorium.R
 import com.example.usecase.interactor.ChangeAppStateUseCase
 import com.example.usecase.repository.AppStateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -21,6 +24,8 @@ class MainViewModel @Inject constructor(
     val navigationAction = appStateRepository.navigationAction.asLiveData()
     val appState = appStateRepository.appState.asLiveData()
 
+    private val _timer = MutableLiveData<Int>()
+    val timer: LiveData<Int> = _timer
 
     fun onStart() {
         viewModelScope.launch {
@@ -42,6 +47,10 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onTimerChanged(time: Int) {
+        _timer.value = time
     }
 
 }

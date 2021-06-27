@@ -31,5 +31,6 @@
     <string name="locationcode">LocationCode: %1$s</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="auto_log_timer">Auto Log Timer</string>
 
 </resources>
