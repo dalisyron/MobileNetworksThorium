@@ -72,11 +72,12 @@ import androidx.core.graphics.drawable.DrawableCompat
 
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
+import androidx.fragment.app.activityViewModels
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.example.thorium.ui.detail.CellLogDetailBottomSheetDialog
+import com.example.thorium.ui.main.MainViewModel
 import com.example.thorium.util.toLatLngEntity
 import com.google.android.material.bottomsheet.BottomSheetDialog
-
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedListener {
@@ -92,6 +93,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
     }
 
     private val homeViewModel: HomeViewModel by viewModels()
+    private val parentViewModel: MainViewModel by activityViewModels()
+
+    private var delay = 5000L
 
     private val locationService: LocationService by lazy {
         LocationServiceImpl(mapboxMap.locationComponent)
@@ -167,6 +171,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
             binding.spinnerMode.adapter = adapter
             binding.spinnerMode.onItemSelectedListener = this
         }
+
         binding.mapView.apply {
             onCreate(savedInstanceState)
             getMapAsync(this@HomeFragment)
@@ -218,7 +223,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
                     prefix = "----",
                     postfix = "----"
                 )
-                Log.e("AAAAA", str)
                 displayTrackingOnMap(tracking)
             }
         }
@@ -253,6 +257,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         homeViewModel.displayCellLogDetail.observe(viewLifecycleOwner, {
             val bottomSheetDialog = CellLogDetailBottomSheetDialog.getInstance(requireContext(), it)
             bottomSheetDialog.show()
+        })
+
+        parentViewModel.timer.observe(viewLifecycleOwner, {
+            sendCellLogTask.setInterval(it * 1000L)
         })
     }
 
@@ -400,6 +408,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
     override fun onDestroy() {
         sendCellLogTask.stop()
+        fakeLocationRepeatingTask.stop()
         super.onDestroy()
     }
 
@@ -424,8 +433,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
     companion object {
         const val TAG = "HomeFragment"
-        const val LOCATION_UPDATE_DELAY = 1000L
         const val CELL_LOG_REQ_DELAY = 6000L
+        const val LOCATION_UPDATE_DELAY = 2000L
         const val MARKER_ICON = "MARKER_ICON"
 
         fun getInstance(): HomeFragment {

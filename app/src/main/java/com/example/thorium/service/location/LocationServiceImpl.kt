@@ -14,7 +14,7 @@ class LocationServiceImpl(
     }
 }
 
-class RepeatingTask(private val handler: Handler, private val interval: Long, task: () -> Unit) {
+class RepeatingTask(private val handler: Handler, private var interval: Long, task: () -> Unit) {
 
     var runnable: Runnable = object : Runnable {
         override fun run() {
@@ -32,5 +32,9 @@ class RepeatingTask(private val handler: Handler, private val interval: Long, ta
 
     fun stop() {
         handler.removeCallbacks(runnable)
+    }
+
+    fun setInterval(interval: Long) {
+        this.interval = interval
     }
 }
