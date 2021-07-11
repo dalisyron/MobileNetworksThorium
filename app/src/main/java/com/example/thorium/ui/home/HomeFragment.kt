@@ -73,11 +73,15 @@ import androidx.core.graphics.drawable.DrawableCompat
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.example.thorium.log.LogManager
 import com.example.thorium.ui.detail.CellLogDetailBottomSheetDialog
 import com.example.thorium.ui.main.MainViewModel
 import com.example.thorium.util.toLatLngEntity
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedListener {
@@ -97,18 +101,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
     private var delay = 5000L
 
-    private val locationService: LocationService by lazy {
-        LocationServiceImpl(mapboxMap.locationComponent)
-    }
-
-    private val cellularService: CellularService by lazy {
-        CellularServiceImpl(requireContext())
+    private fun getCurrentLocation(): LatLngEntity? {
+        return mapboxMap.locationComponent.lastKnownLocation?.toLatLng()
     }
 
     private val sendCellLogTask =
         RepeatingTask(Handler(Looper.getMainLooper()), CELL_LOG_REQ_DELAY) {
-            homeViewModel.onLocationUpdate(locationService.getLastKnownLocation())
+            getCurrentLocation()?.let {
+                homeViewModel.onLocationUpdate(it)
+            }
         }
+
+    @Inject
+    lateinit var logManager: LogManager
 
     private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -179,7 +184,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
         binding.fabStartStopTracking.setOnClickListener {
             runIfLocationPermissionGranted {
-                homeViewModel.onStartStopTrackingClicked(locationService.getLastKnownLocation()!!)
+                getCurrentLocation()?.let {
+                    homeViewModel.onStartStopTrackingClicked(it)
+                }
             }
         }
 
@@ -192,11 +199,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
         binding.fabSaveCellLog.setOnClickListener {
             runIfLocationPermissionGranted {
-                val location = mapboxMap.locationComponent.lastKnownLocation!!.toLatLng()
-                saveCellLog(
-                    cellularService.getActiveCells()[0],
-                    location
-                )
+                lifecycleScope.launch {
+                    val location = getCurrentLocation()
+                    location?.let {
+                        val cellLogRequest = logManager.getCellLog(it)
+                        homeViewModel.onSaveCellLogClicked(cellLogRequest)
+                    }
+                }
             }
         }
 
@@ -238,7 +247,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         }
 
         homeViewModel.requestCellLog.observe(viewLifecycleOwner, { logLocation ->
-            saveCellLog(cellularService.getActiveCells()[0], logLocation)
+            lifecycleScope.launch {
+                val cellLogRequest = logManager.getCellLog(logLocation)
+                homeViewModel.onSaveCellLogClicked(cellLogRequest)
+            }
             fabCellLogPressRunnable.run()
         })
 
@@ -292,14 +304,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
             homeViewModel.initialize()
         }
         super.onHiddenChanged(hidden)
-    }
-
-    private fun saveCellLog(cell: Cell, location: LatLngEntity) {
-        val cellLogRequest = CellLogRequest(
-            cell = cell,
-            location = location
-        )
-        homeViewModel.onSaveCellLogClicked(cellLogRequest)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
