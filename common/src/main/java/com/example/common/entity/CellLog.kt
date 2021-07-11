@@ -15,5 +15,6 @@ data class CellLogRequest(
     val location: LatLngEntity,
     val upstreamLinkThroughputKbps: Int,
     val downstreamLinkThroughputKbps: Int,
-    val dnsResolveTimeMillis: Long
+    val dnsResolveTimeMillis: Long,
+    val rtt: Long
 )

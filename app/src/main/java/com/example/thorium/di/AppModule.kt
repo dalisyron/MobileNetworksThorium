@@ -17,6 +17,8 @@ import com.example.thorium.datasource.DataStoreManagerImpl
 import com.example.thorium.datasource.TrackingLocalDataSourceImpl
 import com.example.thorium.service.cellular.CellularService
 import com.example.thorium.service.cellular.CellularServiceImpl
+import com.example.thorium.service.ping.PingService
+import com.example.thorium.service.ping.PingServiceImpl
 import com.example.thorium.service.throughput.ThroughputMonitoringService
 import com.example.thorium.service.throughput.ThroughputMonitoringServiceImpl
 import com.example.usecase.repository.AppStateRepository
@@ -99,6 +101,13 @@ object AppModule {
     fun provideDnsMonitoringService(): DnsMonitoringService {
         return DnsMonitoringServiceImpl()
     }
+
+    @Singleton
+    @Provides
+    fun providePingService(): PingService {
+        return PingServiceImpl()
+    }
+
 
     @Singleton
     @Provides
