@@ -29,6 +29,9 @@
     <string name="prefix_location3">LAC</string>
     <string name="prefix_location2">LAC</string>
     <string name="locationcode">LocationCode: %1$s</string>
+    <string name="downstream_throughput">Downstream Throughput: %1$s KBps</string>
+    <string name="upstream_throughput">Downstream Throughput: %1$s KBps</string>
+    <string name="dns_resolve_time">DNS Resolve Time: %1$s ms</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="auto_log_timer">Auto Log Timer</string>

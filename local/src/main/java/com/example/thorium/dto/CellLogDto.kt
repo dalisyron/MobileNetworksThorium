@@ -12,5 +12,8 @@ data class CellLogDto(
     @ColumnInfo(name = "tracking_id") val trackingId: Int,
     val cell: Cell,
     val location: LatLngEntity,
-    val dateCreated: Long
+    val dateCreated: Long,
+    val upstreamLinkThroughputKbps: Int,
+    val downstreamLinkThroughputKbps: Int,
+    val dnsResolveTimeMillis: Long
 )

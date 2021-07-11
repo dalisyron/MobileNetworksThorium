@@ -1,9 +1,9 @@
 package com.example.thorium.service.throughput
 
-interface ThroughputService {
+interface ThroughputMonitoringService {
     fun getLinkDownstreamBandwidthKbps(): Int
 
     fun getLinkUpstreamBandwidthKbps(): Int
 
-    fun getEndToEndDownstreamBandwidth(): Int
+    suspend fun getEndToEndDownstreamBandwidth(): Int
 }

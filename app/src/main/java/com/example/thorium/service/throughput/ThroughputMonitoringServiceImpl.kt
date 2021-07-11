@@ -1,28 +1,30 @@
 package com.example.thorium.service.throughput
 
+import android.content.Context
 import javax.inject.Inject
-import android.net.NetworkCapabilities
 
 import android.content.Context.CONNECTIVITY_SERVICE
 
 import android.net.ConnectivityManager
 import com.example.thorium.app.ThoriumApp
 import java.io.IOException
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.EventListener
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
+class ThroughputMonitoringServiceImpl @Inject constructor(
+    context: Context
+) : ThroughputMonitoringService {
 
-class ThroughputServiceImpl @Inject constructor(
-) : ThroughputService {
-
-    private val connectivityManager: ConnectivityManager by lazy {
-        ThoriumApp.applicationContext!!.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-    }
-
-    private val client = OkHttpClient()
+    private val connectivityManager: ConnectivityManager = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val okHttpClient = OkHttpClient()
 
     // first hop transport downlink bandwidth (not to be confused with end to end bandwidth)
     override fun getLinkDownstreamBandwidthKbps(): Int {
@@ -36,30 +38,18 @@ class ThroughputServiceImpl @Inject constructor(
         return nc!!.linkUpstreamBandwidthKbps
     }
 
-    override fun getEndToEndDownstreamBandwidth(): Int {
-        TODO("Not yet implemented")
-
-    }
-
-    private fun run(onCalculated: (Double) -> Unit) {
+    override suspend fun getEndToEndDownstreamBandwidth(): Int = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url(DUCK_FILE_URL)
             .build()
+        var response: Response? = null
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
+        val time = measureTimeMillis {
+            response = okHttpClient.newCall(request).execute()
+        }
+        val contentLength = response!!.body!!.contentLength()
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    val totalSize =
-                        response.body()!!.contentLength() + response.headers().byteCount()
-
-                    return
-                }
-            }
-        })
+        return@withContext ((contentLength / (1024f * time)) * 1000f).toInt()
     }
 
     companion object {
