@@ -7,12 +7,18 @@ import com.example.data.datasource.TrackingLocalDataSource
 import com.example.data.repository.AppStateRepositoryImpl
 import com.example.data.repository.PreferenceRepositoryImpl
 import com.example.data.repository.TrackingRepositoryImpl
+import com.example.network.DnsMonitoringService
+import com.example.network.DnsMonitoringServiceImpl
 import com.example.thorium.dao.CellLogDao
 import com.example.thorium.dao.TrackingDao
 import com.example.thorium.database.MainDatabase
 import com.example.thorium.database.MainTypeConverters
 import com.example.thorium.datasource.DataStoreManagerImpl
 import com.example.thorium.datasource.TrackingLocalDataSourceImpl
+import com.example.thorium.service.cellular.CellularService
+import com.example.thorium.service.cellular.CellularServiceImpl
+import com.example.thorium.service.throughput.ThroughputMonitoringService
+import com.example.thorium.service.throughput.ThroughputMonitoringServiceImpl
 import com.example.usecase.repository.AppStateRepository
 import com.example.usecase.repository.PreferenceRepository
 import com.example.usecase.repository.TrackingRepository
@@ -80,5 +86,23 @@ object AppModule {
     @Provides
     fun provideDataStoreManager(@ApplicationContext context: Context): DataStoreManager {
         return DataStoreManagerImpl(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideCellularService(@ApplicationContext context: Context): CellularService {
+        return CellularServiceImpl(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDnsMonitoringService(): DnsMonitoringService {
+        return DnsMonitoringServiceImpl()
+    }
+
+    @Singleton
+    @Provides
+    fun provideThroughputMonitoringService(@ApplicationContext context: Context): ThroughputMonitoringService {
+        return ThroughputMonitoringServiceImpl(context)
     }
 }

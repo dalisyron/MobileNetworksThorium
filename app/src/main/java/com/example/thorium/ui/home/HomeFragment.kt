@@ -2,9 +2,9 @@ package com.example.thorium.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,31 +16,28 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import com.example.common.entity.Cell
-import com.example.common.entity.CellGsm
+import androidx.lifecycle.lifecycleScope
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.example.common.entity.CellLog
-import com.example.common.entity.CellLogRequest
-import com.example.common.entity.CellLte
-import com.example.common.entity.CellWcdma
-import com.example.common.entity.GenerationsColorsData
 import com.example.common.entity.LatLngEntity
 import com.example.common.entity.Tracking
 import com.example.thorium.R
 import com.example.thorium.databinding.FragmentHomeBinding
-import com.example.thorium.service.cellular.CellularService
-import com.example.thorium.service.cellular.CellularServiceImpl
-import com.example.thorium.service.location.LocationService
-import com.example.thorium.service.location.LocationServiceImpl
+import com.example.thorium.log.LogManager
 import com.example.thorium.service.location.RepeatingTask
-import com.example.thorium.util.ColorUtils
+import com.example.thorium.ui.detail.CellLogDetailBottomSheetDialog
+import com.example.thorium.ui.main.MainViewModel
 import com.example.thorium.util.FakeLocationProvider
 import com.example.thorium.util.checkSelfPermissionCompat
 import com.example.thorium.util.toLatLng
+import com.example.thorium.util.toLatLngEntity
 import com.example.thorium.util.toPoint
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
@@ -64,22 +61,9 @@ import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.hilt.android.AndroidEntryPoint
-import java.lang.IllegalArgumentException
+import javax.inject.Inject
 import kotlinx.android.synthetic.main.fragment_home.*
-import com.mapbox.mapboxsdk.annotations.IconFactory
-
-import androidx.core.graphics.drawable.DrawableCompat
-
-import android.graphics.drawable.Drawable
-import androidx.core.graphics.drawable.toBitmap
-import androidx.fragment.app.activityViewModels
-import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.example.thorium.service.ping.PingService
-import com.example.thorium.service.ping.PingServiceImpl
-import com.example.thorium.ui.detail.CellLogDetailBottomSheetDialog
-import com.example.thorium.ui.main.MainViewModel
-import com.example.thorium.util.toLatLngEntity
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedListener {
@@ -99,22 +83,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
     private var delay = 5000L
 
-    private val locationService: LocationService by lazy {
-        LocationServiceImpl(mapboxMap.locationComponent)
-    }
-
-    private val pingService: PingService by lazy {
-        PingServiceImpl()
-    }
-
-    private val cellularService: CellularService by lazy {
-        CellularServiceImpl(requireContext())
+    private fun getCurrentLocation(): LatLngEntity? {
+        return mapboxMap.locationComponent.lastKnownLocation?.toLatLng()
     }
 
     private val sendCellLogTask =
         RepeatingTask(Handler(Looper.getMainLooper()), CELL_LOG_REQ_DELAY) {
-            homeViewModel.onLocationUpdate(locationService.getLastKnownLocation())
+            getCurrentLocation()?.let {
+                homeViewModel.onLocationUpdate(it)
+            }
         }
+
+    @Inject
+    lateinit var logManager: LogManager
 
     private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -185,7 +166,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
         binding.fabStartStopTracking.setOnClickListener {
             runIfLocationPermissionGranted {
-                homeViewModel.onStartStopTrackingClicked(locationService.getLastKnownLocation()!!)
+                getCurrentLocation()?.let {
+                    homeViewModel.onStartStopTrackingClicked(it)
+                }
             }
         }
 
@@ -198,11 +181,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
         binding.fabSaveCellLog.setOnClickListener {
             runIfLocationPermissionGranted {
-                val location = mapboxMap.locationComponent.lastKnownLocation!!.toLatLng()
-                saveCellLog(
-                    cellularService.getActiveCells()[0],
-                    location
-                )
+                lifecycleScope.launch {
+                    val location = getCurrentLocation()
+                    location?.let {
+                        val cellLogRequest = logManager.getCellLog(it)
+                        homeViewModel.onSaveCellLogClicked(cellLogRequest)
+                    }
+                }
             }
         }
 
@@ -244,7 +229,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
         }
 
         homeViewModel.requestCellLog.observe(viewLifecycleOwner, { logLocation ->
-            saveCellLog(cellularService.getActiveCells()[0], logLocation)
+            lifecycleScope.launch {
+                val cellLogRequest = logManager.getCellLog(logLocation)
+                homeViewModel.onSaveCellLogClicked(cellLogRequest)
+            }
             fabCellLogPressRunnable.run()
         })
 
@@ -298,14 +286,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
             homeViewModel.initialize()
         }
         super.onHiddenChanged(hidden)
-    }
-
-    private fun saveCellLog(cell: Cell, location: LatLngEntity) {
-        val cellLogRequest = CellLogRequest(
-            cell = cell,
-            location = location
-        )
-        homeViewModel.onSaveCellLogClicked(cellLogRequest)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {

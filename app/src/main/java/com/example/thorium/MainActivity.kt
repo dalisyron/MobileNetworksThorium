@@ -8,7 +8,6 @@ import androidx.core.view.children
 import com.example.common.entity.AppState
 import com.example.common.entity.NavigationAction
 import com.example.thorium.databinding.ActivityMainBinding
-import com.example.thorium.service.cellular.CellularServiceImpl
 import com.example.thorium.ui.dashboard.DashboardFragment
 import com.example.thorium.ui.home.HomeFragment
 import com.example.thorium.ui.main.MainViewModel

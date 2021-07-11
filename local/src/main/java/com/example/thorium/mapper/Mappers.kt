@@ -9,7 +9,10 @@ fun CellLog.toCellLogDto(): CellLogDto {
         trackingId = trackingId,
         cell = cell,
         location = location,
-        dateCreated = dateCreated
+        dateCreated = dateCreated,
+        upstreamLinkThroughputKbps = upstreamLinkThroughputKbps,
+        downstreamLinkThroughputKbps = downstreamLinkThroughputKbps,
+        dnsResolveTimeMillis = dnsResolveTimeMillis
     )
 }
 
@@ -18,6 +21,9 @@ fun CellLogDto.toCellLog(): CellLog {
         trackingId = trackingId,
         cell = cell,
         location = location,
-        dateCreated = dateCreated
+        dateCreated = dateCreated,
+        upstreamLinkThroughputKbps = upstreamLinkThroughputKbps,
+        downstreamLinkThroughputKbps = downstreamLinkThroughputKbps,
+        dnsResolveTimeMillis = dnsResolveTimeMillis
     )
 }

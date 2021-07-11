@@ -73,6 +73,19 @@ class CellLogDetailBottomSheetDialog @JvmOverloads constructor(
                     R.string.no
                 )
             binding.tvRegistered.text = context.getString(R.string.registered, registeredText)
+            binding.tvDnsResolveTime.text = context.getString(
+                R.string.dns_resolve_time,
+                (cellLog.dnsResolveTimeMillis).toString()
+            )
+            binding.tvUpstreamThroughput.text = context.getString(
+                R.string.upstream_throughput,
+                (cellLog.upstreamLinkThroughputKbps).toString()
+            )
+            binding.tvDownstreamThroughput.text = context.getString(
+                R.string.downstream_throughput,
+                (cellLog.downstreamLinkThroughputKbps).toString()
+            )
+
         }
     }
 
