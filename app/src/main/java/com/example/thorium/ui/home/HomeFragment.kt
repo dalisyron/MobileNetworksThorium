@@ -74,6 +74,8 @@ import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.activityViewModels
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.example.thorium.service.ping.PingService
+import com.example.thorium.service.ping.PingServiceImpl
 import com.example.thorium.ui.detail.CellLogDetailBottomSheetDialog
 import com.example.thorium.ui.main.MainViewModel
 import com.example.thorium.util.toLatLngEntity
@@ -99,6 +101,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback, AdapterView.OnItemSelectedL
 
     private val locationService: LocationService by lazy {
         LocationServiceImpl(mapboxMap.locationComponent)
+    }
+
+    private val pingService: PingService by lazy {
+        PingServiceImpl()
     }
 
     private val cellularService: CellularService by lazy {
