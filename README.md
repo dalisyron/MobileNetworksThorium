@@ -1,6 +1,7 @@
 
 
 # MobileNetworks992 - Thorium Project
+Thorium is a tool that lets you monitor and log cell connectivity information.
 
 ## Team Members:
 Mobin Dariush Hamedani | 96521191
